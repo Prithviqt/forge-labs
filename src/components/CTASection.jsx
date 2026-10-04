@@ -17,18 +17,22 @@ export default function CTASection() {
       {/* Intense center glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-[#FF4D00]/15 blur-[200px] rounded-full pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 md:px-16 relative z-10 flex flex-col items-center text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-8 font-mono text-xs text-[#FF4D00]">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 md:px-16 relative z-10 flex flex-col items-center text-center w-full box-border min-w-0">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-6 sm:mb-8 font-mono text-xs text-[#FF4D00]">
           <span className="w-2 h-2 rounded-full bg-[#FF4D00] animate-pulse" />
           <span>JOIN THE FORGE PROTOCOL</span>
         </div>
 
-        <h2 className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl tracking-tight leading-none text-white uppercase drop-shadow-2xl">
-          <span className="block whitespace-nowrap">FORGE YOUR</span>
-          <span className="block orange-gradient-text whitespace-nowrap">ROUTINE.</span>
+        <h2
+          className="font-display font-black tracking-tight leading-none text-white uppercase drop-shadow-2xl max-w-full min-w-0 box-border"
+          style={{ fontSize: 'clamp(2rem, 7.5vw, 5.5rem)' }}
+        >
+          <span className="block sm:inline">FORGE </span>
+          <span className="block sm:inline">YOUR </span>
+          <span className="block orange-gradient-text">ROUTINE.</span>
         </h2>
 
-        <p className="mt-8 font-mono text-sm md:text-base text-[#B0B0BC] tracking-widest uppercase font-medium">
+        <p className="mt-6 sm:mt-8 font-mono text-xs sm:text-sm md:text-base text-[#B0B0BC] tracking-wider sm:tracking-widest uppercase font-medium max-w-full break-words">
           CREATINE MONOHYDRATE • PURE • UNFLAVOURED • 5 G PER SERVING
         </p>
 

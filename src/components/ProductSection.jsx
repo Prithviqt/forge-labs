@@ -13,9 +13,9 @@ export default function ProductSection() {
       {/* Background glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-[#FF4D00]/10 blur-[180px] rounded-full pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 md:px-16 relative z-10">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 md:px-16 relative z-10 w-full box-border">
         {/* Header */}
-        <div className="flex flex-col gap-4 max-w-4xl">
+        <div className="flex flex-col gap-4 max-w-4xl w-full min-w-0 box-border">
           <div className="flex items-center gap-3">
             <span className="font-mono text-xs text-[#FF4D00] uppercase tracking-[0.25em]">
               06 // OFFICIAL PRODUCT SPECIFICATION
@@ -23,23 +23,26 @@ export default function ProductSection() {
             <div className="h-px w-12 bg-[#FF4D00]/40" />
           </div>
 
-          <h2 className="font-display font-extrabold text-3xl sm:text-5xl md:text-6xl lg:text-[4.25rem] xl:text-[5.5rem] 2xl:text-[6.5rem] tracking-tight leading-[0.95] text-white uppercase">
-            <span className="block whitespace-nowrap">THE</span>
-            <span className="block whitespace-nowrap">DAILY</span>
-            <span className="block orange-gradient-text whitespace-nowrap">ESSENTIAL.</span>
+          <h2
+            className="font-display font-extrabold tracking-tight leading-[0.95] text-white uppercase max-w-full min-w-0 box-border"
+            style={{ fontSize: 'clamp(1.85rem, 6.5vw, 4.5rem)' }}
+          >
+            <span className="block">THE</span>
+            <span className="block">DAILY</span>
+            <span className="block orange-gradient-text">ESSENTIAL.</span>
           </h2>
 
-          <p className="mt-4 font-sans text-base sm:text-lg text-[#B0B0BC] leading-relaxed">
+          <p className="mt-2 sm:mt-4 font-sans text-base sm:text-lg text-[#B0B0BC] leading-relaxed">
             The foundational supplement for modern athletic performance. Uncompromised purity, instant solubility, zero additives.
           </p>
         </div>
 
         {/* Product Card & Interactive Spec Showcase Grid */}
-        <div className="mt-16 grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
+        <div className="mt-10 sm:mt-16 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-stretch w-full min-w-0 box-border">
           {/* Left Column: Product Tub Visual Container */}
-          <div className="lg:col-span-6 p-6 sm:p-8 md:p-12 bg-[#0A0A0C] border border-white/15 flex flex-col justify-between relative overflow-hidden group">
+          <div className="lg:col-span-6 p-5 sm:p-8 md:p-12 bg-[#0A0A0C] border border-white/15 flex flex-col justify-between relative overflow-hidden group w-full box-border min-w-0">
             {/* Ambient Orange Background Glow */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-[#FF4D00]/10 via-transparent to-transparent opacity-60 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-[#FF4D00]/10 via-transparent to-transparent opacity-60 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
             <div className="flex justify-between items-center z-10">
               <span className="px-3 py-1 bg-white/5 border border-white/10 text-[10px] font-mono text-[#FF4D00] uppercase tracking-wider font-bold">
@@ -49,13 +52,13 @@ export default function ProductSection() {
             </div>
 
             {/* Packaging Graphic Display Container */}
-            <div className="my-8 sm:my-12 py-8 sm:py-12 px-4 sm:px-6 bg-[#0E0E12] border border-white/10 relative z-10 flex flex-col items-center text-center shadow-2xl group-hover:border-[#FF4D00]/40 transition-colors w-full max-w-full overflow-hidden">
-              <div className="w-16 h-1 bg-[#FF4D00] mb-6 shadow-[0_0_12px_#FF4D00]" />
+            <div className="my-6 sm:my-10 py-6 sm:py-10 px-4 sm:px-6 bg-[#0E0E12] border border-white/10 relative z-10 flex flex-col items-center text-center shadow-2xl group-hover:border-[#FF4D00]/40 transition-colors w-full max-w-full overflow-hidden box-border">
+              <div className="w-16 h-1 bg-[#FF4D00] mb-4 sm:mb-6 shadow-[0_0_12px_#FF4D00]" />
               
-              <span className="font-display font-extrabold text-xl sm:text-2xl tracking-widest text-white uppercase">
+              <span className="font-display font-extrabold text-lg sm:text-2xl tracking-widest text-white uppercase">
                 FORGE LABS
               </span>
-              <h3 className="font-display font-black text-2xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl text-white tracking-tight uppercase mt-2 max-w-full text-center leading-tight">
+              <h3 className="font-display font-black text-xl sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl text-white tracking-tight uppercase mt-2 max-w-full text-center leading-tight">
                 <span className="block">CREATINE</span>
                 <span className="block text-[#FF4D00] mt-0.5">MONOHYDRATE</span>
               </h3>

@@ -2,8 +2,8 @@ import React from 'react';
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-[#030303] text-[#90909A] border-t border-white/10 py-16 px-6 md:px-16 font-mono">
-      <div className="max-w-7xl mx-auto flex flex-col gap-12">
+    <footer className="w-full bg-[#030303] text-[#90909A] border-t border-white/10 py-12 sm:py-16 px-5 sm:px-8 md:px-16 font-mono box-border overflow-hidden">
+      <div className="max-w-7xl mx-auto flex flex-col gap-8 sm:gap-12 w-full min-w-0 box-border">
         {/* Top Footer Row */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 border-b border-white/10 pb-12">
           <div className="flex flex-col gap-2">

@@ -64,9 +64,9 @@ export default function FormulaSection() {
       <div className="absolute top-1/4 right-0 w-96 h-96 bg-[#FF4D00]/5 blur-[140px] rounded-full pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-80 h-80 bg-white/5 blur-[120px] rounded-full pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 md:px-16 relative z-10">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 md:px-16 relative z-10 w-full box-border">
         {/* Editorial Section Header */}
-        <div ref={titleRef} className="flex flex-col gap-6 max-w-4xl">
+        <div ref={titleRef} className="flex flex-col gap-6 max-w-4xl w-full min-w-0 box-border">
           <div className="flex items-center gap-3">
             <span className="font-mono text-xs text-[#FF4D00] uppercase tracking-[0.25em]">
               01 // FORMULA SPECIFICATION
@@ -74,13 +74,16 @@ export default function FormulaSection() {
             <div className="h-px w-12 bg-[#FF4D00]/40" />
           </div>
 
-          <h2 className="font-display font-extrabold text-3xl sm:text-5xl md:text-6xl lg:text-[4.25rem] xl:text-[5.5rem] 2xl:text-[6.5rem] tracking-tight leading-[0.95] text-white uppercase">
-            <span className="block sm:inline whitespace-nowrap">PURE BY </span>
-            <span className="block sm:inline text-[#FF4D00] whitespace-nowrap">DESIGN.</span>
+          <h2
+            className="font-display font-extrabold tracking-tight leading-[0.95] text-white uppercase max-w-full min-w-0 box-border"
+            style={{ fontSize: 'clamp(1.85rem, 6.5vw, 4.5rem)' }}
+          >
+            <span className="block sm:inline">PURE BY </span>
+            <span className="block sm:inline text-[#FF4D00]">DESIGN.</span>
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 pt-6 border-t border-white/10">
-            <p className="font-sans text-xl md:text-2xl font-light text-white leading-snug">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 pt-6 border-t border-white/10 w-full min-w-0">
+            <p className="font-sans text-lg sm:text-xl md:text-2xl font-light text-white leading-snug">
               Creatine Monohydrate.
               <br />
               <span className="text-[#90909A]">Nothing unnecessary. Nothing hidden.</span>
@@ -92,11 +95,11 @@ export default function FormulaSection() {
         </div>
 
         {/* Technical Specification Grid Sheet */}
-        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="mt-12 sm:mt-20 grid grid-cols-1 md:grid-cols-3 gap-6 w-full min-w-0 box-border">
           {/* Card 1 */}
           <div
             ref={(el) => (cardsRef.current[0] = el)}
-            className="group relative p-8 bg-[#0D0D0E] border border-white/10 hover:border-[#FF4D00]/60 transition-all duration-500 rounded-none flex flex-col justify-between min-h-[320px] overflow-hidden"
+            className="group relative p-6 sm:p-8 bg-[#0D0D0E] border border-white/10 hover:border-[#FF4D00]/60 transition-all duration-500 rounded-none flex flex-col justify-between min-h-[280px] sm:min-h-[320px] overflow-hidden w-full box-border min-w-0"
           >
             <div className="absolute top-0 right-0 w-24 h-24 bg-[#FF4D00]/10 rounded-full blur-2xl group-hover:bg-[#FF4D00]/20 transition-all" />
             <div className="flex justify-between items-start">

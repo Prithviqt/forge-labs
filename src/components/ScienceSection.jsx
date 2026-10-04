@@ -12,9 +12,9 @@ export default function ScienceSection() {
       {/* Background elements */}
       <div className="absolute top-1/2 left-0 -translate-y-1/2 w-96 h-96 bg-[#FF4D00]/5 blur-[160px] rounded-full pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 md:px-16 relative z-10">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 md:px-16 relative z-10 w-full box-border">
         {/* Header */}
-        <div className="flex flex-col gap-4 max-w-3xl">
+        <div className="flex flex-col gap-4 max-w-3xl w-full min-w-0 box-border">
           <div className="flex items-center gap-3">
             <span className="font-mono text-xs text-[#FF4D00] uppercase tracking-[0.25em]">
               02 // PHYSIOLOGICAL MECHANISM
@@ -22,12 +22,15 @@ export default function ScienceSection() {
             <div className="h-px w-12 bg-[#FF4D00]/40" />
           </div>
 
-          <h2 className="font-display font-extrabold text-3xl sm:text-5xl md:text-6xl lg:text-[4.25rem] xl:text-[5.5rem] 2xl:text-[6.5rem] tracking-tight leading-[0.95] text-white uppercase">
-            <span className="block whitespace-nowrap">THE SCIENCE</span>
-            <span className="block orange-gradient-text whitespace-nowrap">IS SIMPLE.</span>
+          <h2
+            className="font-display font-extrabold tracking-tight leading-[0.95] text-white uppercase max-w-full min-w-0 box-border"
+            style={{ fontSize: 'clamp(1.85rem, 6.5vw, 4.5rem)' }}
+          >
+            <span className="block sm:inline">THE SCIENCE </span>
+            <span className="block sm:inline orange-gradient-text">IS SIMPLE.</span>
           </h2>
 
-          <p className="mt-4 font-sans text-lg text-[#B0B0BC] leading-relaxed">
+          <p className="mt-2 sm:mt-4 font-sans text-base sm:text-lg text-[#B0B0BC] leading-relaxed">
             Creatine monohydrate is one of the most thoroughly researched dietary compounds in sports science. It is stored primarily in skeletal muscle tissue and acts as a critical donor in the phosphocreatine system to rapidly regenerate ATP (Adenosine Triphosphate) during short bursts of high-intensity muscular effort.
           </p>
         </div>

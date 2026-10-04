@@ -76,17 +76,21 @@ export default function EnergySection() {
       {/* Restrained Thermal Glow Background Effects */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-[#FF4D00]/15 to-transparent blur-[180px] rounded-full pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 md:px-16 relative z-10 flex flex-col items-center text-center">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 md:px-16 relative z-10 flex flex-col items-center text-center w-full box-border min-w-0">
         <span className="font-mono text-xs text-[#FF4D00] uppercase tracking-[0.3em] font-semibold mb-4">
           04 // INTENSIVE DISCIPLINE
         </span>
 
-        <h2 className="font-display font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl tracking-tighter leading-none text-white uppercase drop-shadow-2xl">
-          <span className="block whitespace-nowrap">BUILT UNDER</span>
-          <span className="block orange-gradient-text whitespace-nowrap">PRESSURE.</span>
+        <h2
+          className="font-display font-black tracking-tighter leading-none text-white uppercase drop-shadow-2xl max-w-full min-w-0 box-border"
+          style={{ fontSize: 'clamp(2rem, 7.5vw, 5.5rem)' }}
+        >
+          <span className="block sm:inline">BUILT </span>
+          <span className="block sm:inline">UNDER </span>
+          <span className="block orange-gradient-text">PRESSURE.</span>
         </h2>
 
-        <p className="mt-8 max-w-2xl font-sans text-lg md:text-xl text-[#B0B0BC] leading-relaxed font-light">
+        <p className="mt-6 sm:mt-8 max-w-2xl font-sans text-base sm:text-lg md:text-xl text-[#B0B0BC] leading-relaxed font-light">
           High-intensity muscular exertion requires uncompromised cellular fueling. FORGE LABS Creatine Monohydrate provides the raw bioenergetic foundation to sustain peak workload capacity when fatigue demands surrender.
         </p>
 
