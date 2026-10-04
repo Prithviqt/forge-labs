@@ -1,0 +1,152 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-dark: #050505;
+    --bg-surface: #0c0c0d;
+    --bg-card: #121214;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-orange: rgba(255, 77, 0, 0.3);
+    --accent-orange: #ff4d00;
+    --accent-orange-glow: rgba(255, 77, 0, 0.4);
+    --text-primary: #f3f3f5;
+    --text-secondary: #90909a;
+    --text-muted: #575760;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    overflow-x: hidden;
+  }
+
+  body {
+    background-color: #050505;
+    color: #e2e2e8;
+    overflow-x: hidden;
+  }
+}
+
+.font-display {
+  font-family: 'Syne', sans-serif;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  hyphens: none;
+  -webkit-hyphens: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  word-break: keep-all;
+  overflow-wrap: normal;
+  hyphens: none;
+  -webkit-hyphens: none;
+}
+
+.font-grotesk {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.font-sans {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+::-webkit-scrollbar-thumb {
+  background: #26262a;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #ff4d00;
+}
+
+/* Glassmorphism & Card Effects */
+.glass-panel {
+  background: rgba(18, 18, 20, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.glass-panel-orange {
+  background: rgba(255, 77, 0, 0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 77, 0, 0.2);
+}
+
+.orange-gradient-text {
+  background: linear-gradient(135deg, #ffffff 0%, #ff7733 60%, #ff4d00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.orange-glow {
+  box-shadow: 0 0 50px -10px rgba(255, 77, 0, 0.3);
+}
+
+.orange-glow-sm {
+  box-shadow: 0 0 20px -5px rgba(255, 77, 0, 0.25);
+}
+
+.border-subtle {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Noise overlay */
+.bg-noise {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Grid lines overlay */
+.bg-grid-lines {
+  background-size: 60px 60px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}
+
+/* Pulse Glow Animation */
+@keyframes ambientPulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.08); }
+}
+
+.animate-ambient-glow {
+  animation: ambientPulse 8s ease-in-out infinite;
+}
+
+/* Video pinning utilities */
+.pinned-hero-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+}
+
+/* Text stroke */
+.text-stroke-orange {
+  -webkit-text-stroke: 1px rgba(255, 77, 0, 0.4);
+  color: transparent;
+}
+
+.text-stroke-white {
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.2);
+  color: transparent;
+}
