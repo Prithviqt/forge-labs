@@ -17,8 +17,9 @@ export default function Hero({ onProgressChange }) {
   const [loadPercent, setLoadPercent] = useState(0);
   const [scrollProgressPercentage, setScrollProgressPercentage] = useState(0);
 
-  // Preload frame images
+  // Preload frame images with instant startup & progressive background loading
   useEffect(() => {
+    let isCancelled = false;
     let loadedCount = 0;
     const images = new Array(TOTAL_FRAMES);
 
@@ -27,37 +28,93 @@ export default function Hero({ onProgressChange }) {
       return `/hero-frames/frame_${pad}.jpg`;
     };
 
-    // Render frame 1 immediately when ready
+    // 1. Safety fallback timeout: dismiss preloader after 4s no matter what
+    const safetyTimer = setTimeout(() => {
+      if (!isCancelled) {
+        setIsLoaded(true);
+      }
+    }, 4000);
+
+    // 2. Render initial frame 1 immediately and dismiss loader on first frame ready
     const initialImg = new Image();
     initialImg.src = getFrameUrl(0);
-    initialImg.onload = () => {
+
+    const handleInitialFrameLoad = () => {
+      if (isCancelled) return;
       images[0] = initialImg;
       if (canvasRef.current) {
         renderFrameToCanvas(canvasRef.current, initialImg);
       }
+      setIsLoaded(true);
+      setLoadPercent(1);
     };
 
-    // Preload frame sequence
-    for (let i = 0; i < TOTAL_FRAMES; i++) {
-      const img = new Image();
-      img.src = getFrameUrl(i);
-      img.onload = () => {
-        images[i] = img;
-        loadedCount++;
-        const percent = Math.min(100, Math.round((loadedCount / TOTAL_FRAMES) * 100));
-        setLoadPercent(percent);
+    initialImg.onload = handleInitialFrameLoad;
+    initialImg.onerror = (err) => {
+      console.warn("First hero frame failed to load, activating fallback:", err);
+      if (!isCancelled) setIsLoaded(true);
+    };
 
-        if (loadedCount >= 30 && !isLoaded) {
-          setIsLoaded(true);
-        }
-      };
-      img.onerror = () => {
-        loadedCount++;
-      };
-      images[i] = img;
+    // If initial image was already cached
+    if (initialImg.complete && initialImg.naturalWidth > 0) {
+      handleInitialFrameLoad();
     }
 
+    // 3. Progressive batched frame preloader (chunks of 20 to avoid HTTP connection saturation)
+    const BATCH_SIZE = 20;
+    let currentBatch = 0;
+
+    const loadBatch = () => {
+      if (isCancelled) return;
+      const start = currentBatch * BATCH_SIZE;
+      const end = Math.min(TOTAL_FRAMES, start + BATCH_SIZE);
+
+      let batchPending = end - start;
+
+      for (let i = start; i < end; i++) {
+        if (i === 0 && images[0]) {
+          batchPending--;
+          continue;
+        }
+
+        const img = new Image();
+        img.src = getFrameUrl(i);
+        img.onload = () => {
+          if (isCancelled) return;
+          images[i] = img;
+          loadedCount++;
+          const percent = Math.min(100, Math.round((loadedCount / TOTAL_FRAMES) * 100));
+          setLoadPercent(percent);
+
+          batchPending--;
+          if (batchPending <= 0 && end < TOTAL_FRAMES) {
+            currentBatch++;
+            setTimeout(loadBatch, 15); // Smooth background schedule
+          }
+        };
+
+        img.onerror = () => {
+          if (isCancelled) return;
+          loadedCount++;
+          batchPending--;
+          if (batchPending <= 0 && end < TOTAL_FRAMES) {
+            currentBatch++;
+            setTimeout(loadBatch, 15);
+          }
+        };
+
+        images[i] = img;
+      }
+    };
+
+    // Begin background batch loading
+    loadBatch();
     imagesRef.current = images;
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(safetyTimer);
+    };
   }, []);
 
   // Helper to render an image onto canvas with cover aspect ratio scaling
@@ -121,13 +178,33 @@ export default function Hero({ onProgressChange }) {
     let currentFrameIndex = 0;
     let animationFrameId = null;
 
+    // Helper to find nearest available loaded frame
+    const getClosestLoadedFrame = (targetIdx) => {
+      const images = imagesRef.current;
+      if (!images || images.length === 0) return null;
+      if (images[targetIdx] && images[targetIdx].complete && images[targetIdx].naturalWidth > 0) {
+        return images[targetIdx];
+      }
+      for (let offset = 1; offset < TOTAL_FRAMES; offset++) {
+        const prev = targetIdx - offset;
+        if (prev >= 0 && images[prev] && images[prev].complete && images[prev].naturalWidth > 0) {
+          return images[prev];
+        }
+        const next = targetIdx + offset;
+        if (next < TOTAL_FRAMES && images[next] && images[next].complete && images[next].naturalWidth > 0) {
+          return images[next];
+        }
+      }
+      return images[0];
+    };
+
     // Continuous RAF loop lerping frame rendering to target frame
     const renderLoop = () => {
       const diff = targetFrameIndex - currentFrameIndex;
       if (Math.abs(diff) > 0.05) {
         currentFrameIndex += diff * 0.3; // smooth cinematic scrubbing
         const frameIdx = Math.max(0, Math.min(TOTAL_FRAMES - 1, Math.round(currentFrameIndex)));
-        const img = imagesRef.current[frameIdx];
+        const img = getClosestLoadedFrame(frameIdx);
         if (img) {
           renderFrameToCanvas(canvas, img);
         }
