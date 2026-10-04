@@ -36,12 +36,12 @@ export default function ScienceSection() {
         </div>
 
         {/* Interactive Mechanism Breakdown Tabs */}
-        <div className="mt-16 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="mt-10 sm:mt-16 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start w-full min-w-0 box-border">
           {/* Left Tab Buttons */}
-          <div className="lg:col-span-4 flex flex-col gap-3">
+          <div className="lg:col-span-4 flex flex-col gap-3 w-full min-w-0 box-border">
             <button
               onClick={() => setActiveTab('atp')}
-              className={`p-6 text-left border transition-all duration-300 flex flex-col gap-2 ${
+              className={`p-4 sm:p-6 text-left border transition-all duration-300 flex flex-col gap-1.5 sm:gap-2 w-full box-border min-w-0 ${
                 activeTab === 'atp'
                   ? 'bg-[#121215] border-[#FF4D00] shadow-[0_0_20px_rgba(255,77,0,0.15)]'
                   : 'bg-[#0a0a0c] border-white/10 hover:border-white/20'
@@ -51,7 +51,7 @@ export default function ScienceSection() {
                 <span className="font-mono text-xs text-[#FF4D00]">01 // ENERGY REGENERATION</span>
                 <RefreshCw className={`w-4 h-4 ${activeTab === 'atp' ? 'text-[#FF4D00] animate-spin' : 'text-[#90909A]'}`} />
               </div>
-              <span className="font-display font-bold text-xl text-white">ATP Regeneration</span>
+              <span className="font-display font-bold text-lg sm:text-xl text-white">ATP Regeneration</span>
               <span className="font-mono text-xs text-[#90909A]">
                 Converts ADP back into ATP during explosive muscular contractions.
               </span>
@@ -59,7 +59,7 @@ export default function ScienceSection() {
 
             <button
               onClick={() => setActiveTab('saturation')}
-              className={`p-6 text-left border transition-all duration-300 flex flex-col gap-2 ${
+              className={`p-4 sm:p-6 text-left border transition-all duration-300 flex flex-col gap-1.5 sm:gap-2 w-full box-border min-w-0 ${
                 activeTab === 'saturation'
                   ? 'bg-[#121215] border-[#FF4D00] shadow-[0_0_20px_rgba(255,77,0,0.15)]'
                   : 'bg-[#0a0a0c] border-white/10 hover:border-white/20'
@@ -69,7 +69,7 @@ export default function ScienceSection() {
                 <span className="font-mono text-xs text-[#FF4D00]">02 // MUSCLE SATURATION</span>
                 <BarChart2 className={`w-4 h-4 ${activeTab === 'saturation' ? 'text-[#FF4D00]' : 'text-[#90909A]'}`} />
               </div>
-              <span className="font-display font-bold text-xl text-white">Intracellular Saturation</span>
+              <span className="font-display font-bold text-lg sm:text-xl text-white">Intracellular Saturation</span>
               <span className="font-mono text-xs text-[#90909A]">
                 Increases muscle phosphocreatine pools by 20%–40% over baseline.
               </span>
@@ -77,7 +77,7 @@ export default function ScienceSection() {
 
             <button
               onClick={() => setActiveTab('hydration')}
-              className={`p-6 text-left border transition-all duration-300 flex flex-col gap-2 ${
+              className={`p-4 sm:p-6 text-left border transition-all duration-300 flex flex-col gap-1.5 sm:gap-2 w-full box-border min-w-0 ${
                 activeTab === 'hydration'
                   ? 'bg-[#121215] border-[#FF4D00] shadow-[0_0_20px_rgba(255,77,0,0.15)]'
                   : 'bg-[#0a0a0c] border-white/10 hover:border-white/20'
@@ -87,7 +87,7 @@ export default function ScienceSection() {
                 <span className="font-mono text-xs text-[#FF4D00]">03 // CELLULAR VOLUMIZATION</span>
                 <Layers className={`w-4 h-4 ${activeTab === 'hydration' ? 'text-[#FF4D00]' : 'text-[#90909A]'}`} />
               </div>
-              <span className="font-display font-bold text-xl text-white">Osmotic Osmolality</span>
+              <span className="font-display font-bold text-lg sm:text-xl text-white">Osmotic Osmolality</span>
               <span className="font-mono text-xs text-[#90909A]">
                 Draws intracellular water into muscle fibers to promote cellular fullness.
               </span>
@@ -95,7 +95,7 @@ export default function ScienceSection() {
           </div>
 
           {/* Right Display Canvas / Diagram */}
-          <div className="lg:col-span-8 p-8 md:p-12 bg-[#0b0b0e] border border-white/10 min-h-[420px] flex flex-col justify-between">
+          <div className="lg:col-span-8 p-5 sm:p-8 md:p-12 bg-[#0b0b0e] border border-white/10 min-h-[360px] sm:min-h-[420px] flex flex-col justify-between w-full box-border min-w-0">
             {activeTab === 'atp' && (
               <div className="flex flex-col gap-6 animate-fadeIn">
                 <div className="flex items-center justify-between border-b border-white/10 pb-4">

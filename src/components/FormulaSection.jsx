@@ -124,16 +124,16 @@ export default function FormulaSection() {
           {/* Card 2 */}
           <div
             ref={(el) => (cardsRef.current[1] = el)}
-            className="group relative p-8 bg-[#0D0D0E] border border-white/10 hover:border-[#FF4D00]/60 transition-all duration-500 rounded-none flex flex-col justify-between min-h-[320px] overflow-hidden"
+            className="group relative p-6 sm:p-8 bg-[#0D0D0E] border border-white/10 hover:border-[#FF4D00]/60 transition-all duration-500 rounded-none flex flex-col justify-between min-h-[280px] sm:min-h-[320px] overflow-hidden w-full box-border min-w-0"
           >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-2xl group-hover:bg-[#FF4D00]/20 transition-all" />
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-2xl group-hover:bg-[#FF4D00]/20 transition-all pointer-events-none" />
             <div className="flex justify-between items-start">
               <span className="font-mono text-xs text-[#FF4D00]">SPEC 02 // DOSAGE</span>
               <Zap className="w-5 h-5 text-[#90909A] group-hover:text-[#FF4D00] transition-colors" />
             </div>
 
             <div className="my-6">
-              <div className="font-display font-black text-6xl lg:text-7xl text-white group-hover:scale-105 transition-transform duration-300 origin-left">
+              <div className="font-display font-black text-5xl sm:text-6xl lg:text-7xl text-white group-hover:scale-105 transition-transform duration-300 origin-left">
                 5 G
               </div>
               <div className="font-mono text-sm tracking-widest text-white uppercase mt-2 font-semibold">
@@ -149,16 +149,16 @@ export default function FormulaSection() {
           {/* Card 3 */}
           <div
             ref={(el) => (cardsRef.current[2] = el)}
-            className="group relative p-8 bg-[#0D0D0E] border border-white/10 hover:border-[#FF4D00]/60 transition-all duration-500 rounded-none flex flex-col justify-between min-h-[320px] overflow-hidden"
+            className="group relative p-6 sm:p-8 bg-[#0D0D0E] border border-white/10 hover:border-[#FF4D00]/60 transition-all duration-500 rounded-none flex flex-col justify-between min-h-[280px] sm:min-h-[320px] overflow-hidden w-full box-border min-w-0"
           >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-[#FF4D00]/10 rounded-full blur-2xl group-hover:bg-[#FF4D00]/20 transition-all" />
+            <div className="absolute top-0 right-0 w-24 h-24 bg-[#FF4D00]/10 rounded-full blur-2xl group-hover:bg-[#FF4D00]/20 transition-all pointer-events-none" />
             <div className="flex justify-between items-start">
               <span className="font-mono text-xs text-[#FF4D00]">SPEC 03 // FORM</span>
               <Award className="w-5 h-5 text-[#90909A] group-hover:text-[#FF4D00] transition-colors" />
             </div>
 
             <div className="my-6">
-              <div className="font-display font-black text-5xl lg:text-6xl text-white group-hover:scale-105 transition-transform duration-300 origin-left uppercase">
+              <div className="font-display font-black text-4xl sm:text-5xl lg:text-6xl text-white group-hover:scale-105 transition-transform duration-300 origin-left uppercase">
                 PURE
               </div>
               <div className="font-mono text-sm tracking-widest text-[#FF4D00] uppercase mt-2 font-semibold">
@@ -173,29 +173,29 @@ export default function FormulaSection() {
         </div>
 
         {/* Technical Specification Matrix */}
-        <div className="mt-16 p-8 bg-[#0a0a0b] border border-white/10">
-          <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
-            <span className="font-mono text-xs text-[#FF4D00] uppercase tracking-wider">
+        <div className="mt-10 sm:mt-16 p-5 sm:p-8 bg-[#0a0a0b] border border-white/10 w-full box-border min-w-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-4 mb-6 gap-2">
+            <span className="font-mono text-xs text-[#FF4D00] uppercase tracking-wider font-semibold">
               TECHNICAL ANALYTICAL DATA SHEET
             </span>
             <span className="font-mono text-[10px] text-[#90909A]">LAB ID: FG-CR-2026</span>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 font-mono text-xs">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 font-mono text-xs">
             <div className="flex flex-col gap-1">
-              <span className="text-[#90909A]">MICRONIZATION</span>
+              <span className="text-[#90909A] text-[10px]">MICRONIZATION</span>
               <span className="text-white font-bold">200 MESH FINE</span>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-[#90909A]">MOISTURE CONTENT</span>
+              <span className="text-[#90909A] text-[10px]">MOISTURE CONTENT</span>
               <span className="text-white font-bold">&lt; 0.05%</span>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-[#90909A]">HEAVY METALS</span>
+              <span className="text-[#90909A] text-[10px]">HEAVY METALS</span>
               <span className="text-[#FF4D00] font-bold">NOT DETECTED</span>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-[#90909A]">SOLUBILITY</span>
+              <span className="text-[#90909A] text-[10px]">SOLUBILITY</span>
               <span className="text-white font-bold">INSTANTIZED</span>
             </div>
           </div>
