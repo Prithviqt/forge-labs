@@ -34,11 +34,11 @@ export default function Navbar({ isVisible = false }) {
             : 'opacity-0 -translate-y-full pointer-events-none'
         } ${
           scrolled
-            ? 'bg-[#050505]/90 backdrop-blur-md border-b border-white/10 py-4 shadow-2xl'
-            : 'bg-gradient-to-b from-black/90 via-black/50 to-transparent py-6'
+            ? 'bg-[#050505]/90 backdrop-blur-md border-b border-white/10 py-3.5 sm:py-4 shadow-2xl'
+            : 'bg-gradient-to-b from-black/90 via-black/50 to-transparent py-5 sm:py-6'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 md:px-12 flex items-center justify-between">
           {/* Brand Logo */}
           <a
             href="#hero"
@@ -46,14 +46,14 @@ export default function Navbar({ isVisible = false }) {
               e.preventDefault();
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="group flex items-center gap-3 cursor-pointer"
+            className="group flex items-center gap-2.5 sm:gap-3 cursor-pointer py-1"
           >
-            <div className="w-3 h-3 rounded-full bg-[#FF4D00] shadow-[0_0_12px_#FF4D00] group-hover:scale-125 transition-transform duration-300" />
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[#FF4D00] shadow-[0_0_12px_#FF4D00] group-hover:scale-125 transition-transform duration-300" />
             <div className="flex flex-col">
-              <span className="font-display font-extrabold tracking-widest text-lg text-white group-hover:text-[#FF4D00] transition-colors duration-300">
+              <span className="font-display font-extrabold tracking-widest text-base sm:text-lg text-white group-hover:text-[#FF4D00] transition-colors duration-300">
                 FORGE LABS
               </span>
-              <span className="font-mono text-[9px] text-[#90909A] tracking-wider -mt-1">
+              <span className="font-mono text-[8px] sm:text-[9px] text-[#90909A] tracking-wider -mt-1">
                 SPORTS SCIENCE
               </span>
             </div>
@@ -63,25 +63,25 @@ export default function Navbar({ isVisible = false }) {
           <div className="hidden md:flex items-center gap-8">
             <button
               onClick={() => scrollToSection('formula')}
-              className="font-mono text-xs uppercase tracking-widest text-[#90909A] hover:text-white transition-colors duration-200"
+              className="font-mono text-xs uppercase tracking-widest text-[#90909A] hover:text-white transition-colors duration-200 cursor-pointer"
             >
               Formula
             </button>
             <button
               onClick={() => scrollToSection('science')}
-              className="font-mono text-xs uppercase tracking-widest text-[#90909A] hover:text-white transition-colors duration-200"
+              className="font-mono text-xs uppercase tracking-widest text-[#90909A] hover:text-white transition-colors duration-200 cursor-pointer"
             >
               Science
             </button>
             <button
               onClick={() => scrollToSection('mix')}
-              className="font-mono text-xs uppercase tracking-widest text-[#90909A] hover:text-white transition-colors duration-200"
+              className="font-mono text-xs uppercase tracking-widest text-[#90909A] hover:text-white transition-colors duration-200 cursor-pointer"
             >
               The Mix
             </button>
             <button
               onClick={() => scrollToSection('product')}
-              className="font-mono text-xs uppercase tracking-widest text-[#90909A] hover:text-white transition-colors duration-200"
+              className="font-mono text-xs uppercase tracking-widest text-[#90909A] hover:text-white transition-colors duration-200 cursor-pointer"
             >
               Product
             </button>
@@ -95,7 +95,7 @@ export default function Navbar({ isVisible = false }) {
             </div>
             <button
               onClick={() => scrollToSection('product')}
-              className="group relative inline-flex items-center justify-center px-5 py-2.5 overflow-hidden font-mono text-xs font-semibold tracking-wider text-black bg-white rounded-none hover:bg-[#FF4D00] hover:text-white transition-all duration-300 shadow-lg"
+              className="group relative inline-flex items-center justify-center px-5 py-2.5 overflow-hidden font-mono text-xs font-semibold tracking-wider text-black bg-white rounded-none hover:bg-[#FF4D00] hover:text-white transition-all duration-300 shadow-lg cursor-pointer"
             >
               <span className="relative z-10 flex items-center gap-1">
                 GET FORGE
@@ -107,7 +107,7 @@ export default function Navbar({ isVisible = false }) {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-[#90909A] hover:text-white transition-colors"
+            className="md:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#90909A] hover:text-white transition-colors cursor-pointer"
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -117,45 +117,45 @@ export default function Navbar({ isVisible = false }) {
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && isVisible && (
-        <div className="fixed inset-0 z-40 bg-[#050505]/98 backdrop-blur-xl flex flex-col justify-between px-8 py-24 md:hidden border-b border-white/10">
-          <div className="flex flex-col gap-8">
+        <div className="fixed inset-0 z-40 bg-[#050505]/98 backdrop-blur-xl flex flex-col justify-between px-6 sm:px-8 py-20 sm:py-24 md:hidden border-b border-white/10 overflow-y-auto max-h-screen">
+          <div className="flex flex-col gap-6 sm:gap-8 my-auto">
             <span className="font-mono text-[10px] text-[#FF4D00] uppercase tracking-widest">
               Navigation Menu
             </span>
             <button
               onClick={() => scrollToSection('formula')}
-              className="text-left font-display text-2xl font-bold text-white hover:text-[#FF4D00] transition-colors"
+              className="text-left font-display text-xl sm:text-2xl font-bold text-white hover:text-[#FF4D00] transition-colors py-2 min-h-[44px]"
             >
               01 // FORMULA
             </button>
             <button
               onClick={() => scrollToSection('science')}
-              className="text-left font-display text-2xl font-bold text-white hover:text-[#FF4D00] transition-colors"
+              className="text-left font-display text-xl sm:text-2xl font-bold text-white hover:text-[#FF4D00] transition-colors py-2 min-h-[44px]"
             >
               02 // SCIENCE
             </button>
             <button
               onClick={() => scrollToSection('mix')}
-              className="text-left font-display text-2xl font-bold text-white hover:text-[#FF4D00] transition-colors"
+              className="text-left font-display text-xl sm:text-2xl font-bold text-white hover:text-[#FF4D00] transition-colors py-2 min-h-[44px]"
             >
               03 // THE MIX
             </button>
             <button
               onClick={() => scrollToSection('product')}
-              className="text-left font-display text-2xl font-bold text-white hover:text-[#FF4D00] transition-colors"
+              className="text-left font-display text-xl sm:text-2xl font-bold text-white hover:text-[#FF4D00] transition-colors py-2 min-h-[44px]"
             >
               04 // PRODUCT
             </button>
           </div>
 
-          <div className="flex flex-col gap-4 border-t border-white/10 pt-6">
+          <div className="flex flex-col gap-4 border-t border-white/10 pt-6 mt-auto">
             <div className="flex justify-between items-center text-xs font-mono text-[#90909A]">
               <span>SPECIFICATION</span>
               <span className="text-white">5 G / SERVING</span>
             </div>
             <button
               onClick={() => scrollToSection('product')}
-              className="w-full py-4 bg-[#FF4D00] text-white font-mono text-sm font-bold tracking-widest uppercase text-center"
+              className="w-full py-4 bg-[#FF4D00] text-white font-mono text-sm font-bold tracking-widest uppercase text-center min-h-[48px] flex items-center justify-center cursor-pointer"
             >
               EXPLORE PRODUCT
             </button>

@@ -280,10 +280,10 @@ export default function Hero({ onProgressChange }) {
         )}
 
         {/* TOP MINIMAL BRANDING BADGE (z-20) */}
-        <div className="absolute top-8 left-8 sm:left-12 z-20 pointer-events-none">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/50 border border-white/15 backdrop-blur-md">
+        <div className="absolute top-4 left-4 sm:top-8 sm:left-12 z-20 pointer-events-none">
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-black/50 border border-white/15 backdrop-blur-md">
             <span className="w-2 h-2 rounded-full bg-[#FF4D00] animate-pulse" />
-            <span className="font-mono text-[10px] sm:text-xs text-[#E0E0E0] tracking-widest uppercase font-semibold">
+            <span className="font-mono text-[9px] sm:text-xs text-[#E0E0E0] tracking-widest uppercase font-semibold">
               FORGE LABS // CINEMATIC FILM
             </span>
           </div>
@@ -292,16 +292,18 @@ export default function Hero({ onProgressChange }) {
         {/* BOTTOM MINIMAL SCROLL INDICATOR OVERLAY (z-20) */}
         <div
           ref={scrollIndicatorRef}
-          className="absolute bottom-8 left-0 right-0 z-20 flex justify-between items-center px-8 sm:px-12 pointer-events-none font-mono text-xs text-[#90909A]"
+          className="absolute bottom-6 sm:bottom-8 left-0 right-0 z-20 flex justify-between items-center px-4 sm:px-8 md:px-12 pointer-events-none font-mono text-xs text-[#90909A]"
         >
-          <div className="flex items-center gap-3 text-white">
-            <span className="tracking-widest uppercase text-[#90909A]">SCROLL TO FORGE</span>
-            <div className="p-2 rounded-full bg-black/40 border border-white/20 backdrop-blur-md animate-bounce">
-              <ChevronDown className="w-4 h-4 text-[#FF4D00]" />
+          <div className="flex items-center gap-2 sm:gap-3 text-white">
+            <span className="tracking-widest uppercase text-[#90909A] text-[10px] sm:text-xs">
+              <span className="hidden sm:inline">SCROLL TO </span>FORGE
+            </span>
+            <div className="p-1.5 sm:p-2 rounded-full bg-black/40 border border-white/20 backdrop-blur-md animate-bounce">
+              <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FF4D00]" />
             </div>
           </div>
 
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 border border-white/15 backdrop-blur-md">
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-black/60 border border-white/15 backdrop-blur-md text-[10px] sm:text-xs">
             <span>PROGRESS</span>
             <span className="text-[#FF4D00] font-bold">{scrollProgressPercentage}%</span>
           </div>

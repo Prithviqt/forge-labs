@@ -65,7 +65,7 @@ export default function EnergySection() {
   return (
     <section
       id="energy"
-      className="relative w-full py-40 bg-[#040404] text-[#E0E0E0] border-t border-white/10 overflow-hidden"
+      className="relative w-full py-20 sm:py-28 md:py-40 bg-[#040404] text-[#E0E0E0] border-t border-white/10 overflow-hidden"
     >
       {/* Subtle particle canvas */}
       <canvas
@@ -74,43 +74,43 @@ export default function EnergySection() {
       />
 
       {/* Restrained Thermal Glow Background Effects */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-[#FF4D00]/15 to-transparent blur-[180px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[600px] h-[300px] sm:h-[600px] bg-gradient-to-tr from-[#FF4D00]/15 to-transparent blur-[120px] sm:blur-[180px] rounded-full pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-5 sm:px-8 md:px-16 relative z-10 flex flex-col items-center text-center w-full box-border min-w-0">
-        <span className="font-mono text-xs text-[#FF4D00] uppercase tracking-[0.3em] font-semibold mb-4">
+        <span className="font-mono text-xs text-[#FF4D00] uppercase tracking-[0.3em] font-semibold mb-3 sm:mb-4">
           04 // INTENSIVE DISCIPLINE
         </span>
 
         <h2
           className="font-display font-black tracking-tighter leading-none text-white uppercase drop-shadow-2xl max-w-full min-w-0 box-border"
-          style={{ fontSize: 'clamp(2rem, 7.5vw, 5.5rem)' }}
+          style={{ fontSize: 'clamp(1.85rem, 7.5vw, 5.5rem)' }}
         >
           <span className="block sm:inline">BUILT </span>
           <span className="block sm:inline">UNDER </span>
           <span className="block orange-gradient-text">PRESSURE.</span>
         </h2>
 
-        <p className="mt-6 sm:mt-8 max-w-2xl font-sans text-base sm:text-lg md:text-xl text-[#B0B0BC] leading-relaxed font-light">
+        <p className="mt-4 sm:mt-8 max-w-2xl font-sans text-sm sm:text-lg md:text-xl text-[#B0B0BC] leading-relaxed font-light">
           High-intensity muscular exertion requires uncompromised cellular fueling. FORGE LABS Creatine Monohydrate provides the raw bioenergetic foundation to sustain peak workload capacity when fatigue demands surrender.
         </p>
 
         {/* Technical Callout Stats */}
-        <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 w-full max-w-4xl border-t border-b border-white/10 py-10 font-mono">
+        <div className="mt-10 sm:mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 w-full max-w-4xl border-t border-b border-white/10 py-6 sm:py-10 font-mono">
           <div className="flex flex-col items-center gap-1">
-            <span className="text-3xl md:text-4xl font-extrabold text-white font-display">+15%</span>
-            <span className="text-xs text-[#90909A] uppercase tracking-wider">MAX POWER OUTPUT</span>
+            <span className="text-2.5xl sm:text-3xl md:text-4xl font-extrabold text-white font-display">+15%</span>
+            <span className="text-[10px] sm:text-xs text-[#90909A] uppercase tracking-wider text-center">MAX POWER OUTPUT</span>
           </div>
           <div className="flex flex-col items-center gap-1">
-            <span className="text-3xl md:text-4xl font-extrabold text-[#FF4D00] font-display">-25%</span>
-            <span className="text-xs text-[#90909A] uppercase tracking-wider">RECOVERY LATENCY</span>
+            <span className="text-2.5xl sm:text-3xl md:text-4xl font-extrabold text-[#FF4D00] font-display">-25%</span>
+            <span className="text-[10px] sm:text-xs text-[#90909A] uppercase tracking-wider text-center">RECOVERY LATENCY</span>
           </div>
           <div className="flex flex-col items-center gap-1">
-            <span className="text-3xl md:text-4xl font-extrabold text-white font-display">100%</span>
-            <span className="text-xs text-[#90909A] uppercase tracking-wider">MICRONIZED PURITY</span>
+            <span className="text-2.5xl sm:text-3xl md:text-4xl font-extrabold text-white font-display">100%</span>
+            <span className="text-[10px] sm:text-xs text-[#90909A] uppercase tracking-wider text-center">MICRONIZED PURITY</span>
           </div>
           <div className="flex flex-col items-center gap-1">
-            <span className="text-3xl md:text-4xl font-extrabold text-[#FF4D00] font-display">0.0G</span>
-            <span className="text-xs text-[#90909A] uppercase tracking-wider">ADDED FILLERS</span>
+            <span className="text-2.5xl sm:text-3xl md:text-4xl font-extrabold text-[#FF4D00] font-display">0.0G</span>
+            <span className="text-[10px] sm:text-xs text-[#90909A] uppercase tracking-wider text-center">ADDED FILLERS</span>
           </div>
         </div>
       </div>
