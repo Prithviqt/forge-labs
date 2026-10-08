@@ -139,16 +139,34 @@ export default function Hero({ onProgressChange }) {
     const imgAspect = img.naturalWidth / img.naturalHeight;
     let drawW, drawH, drawX, drawY;
 
-    if (canvasAspect > imgAspect) {
-      drawW = width;
-      drawH = width / imgAspect;
-      drawX = 0;
-      drawY = (height - drawH) / 2;
+    // Use contain mode for mobile viewports (<= 768px) so the entire cinematic frame is visible without cropping
+    const isMobile = width <= 768;
+
+    if (isMobile) {
+      if (canvasAspect > imgAspect) {
+        drawH = height;
+        drawW = height * imgAspect;
+        drawX = (width - drawW) / 2;
+        drawY = 0;
+      } else {
+        drawW = width;
+        drawH = width / imgAspect;
+        drawX = 0;
+        drawY = (height - drawH) / 2;
+      }
     } else {
-      drawH = height;
-      drawW = height * imgAspect;
-      drawX = (width - drawW) / 2;
-      drawY = 0;
+      // Desktop: preserve original cover aspect ratio behavior
+      if (canvasAspect > imgAspect) {
+        drawW = width;
+        drawH = width / imgAspect;
+        drawX = 0;
+        drawY = (height - drawH) / 2;
+      } else {
+        drawH = height;
+        drawW = height * imgAspect;
+        drawX = (width - drawW) / 2;
+        drawY = 0;
+      }
     }
 
     ctx.clearRect(0, 0, width, height);
