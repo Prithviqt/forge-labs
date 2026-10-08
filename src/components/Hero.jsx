@@ -9,13 +9,74 @@ const TOTAL_FRAMES = 691;
 
 export default function Hero({ onProgressChange }) {
   const containerRef = useRef(null);
-  const canvasRef = useRef(null);
-  const scrollIndicatorRef = useRef(null);
+  const desktopCanvasRef = useRef(null);
+  const mobileCanvasRef = useRef(null);
+  const scrollIndicatorRefDesktop = useRef(null);
+  const scrollIndicatorRefMobile = useRef(null);
   const imagesRef = useRef([]);
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadPercent, setLoadPercent] = useState(0);
   const [scrollProgressPercentage, setScrollProgressPercentage] = useState(0);
+
+  // Helper to render an image onto canvas
+  const renderFrameToCanvas = (canvas, img, isMobile) => {
+    if (!canvas || !img || !img.complete || img.naturalWidth === 0) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const width = canvas.parentElement.offsetWidth;
+    const height = canvas.parentElement.offsetHeight;
+
+    if (width === 0 || height === 0) return;
+
+    if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+    }
+
+    ctx.save();
+    ctx.scale(dpr, dpr);
+
+    if (isMobile) {
+      // Mobile canvas parent has exact 16:9 intrinsic aspect ratio box
+      // Fill canvas 100% edge-to-edge without internal letterboxing
+      ctx.clearRect(0, 0, width, height);
+      ctx.drawImage(img, 0, 0, width, height);
+    } else {
+      // Desktop canvas parent is full screen 100vw x 100vh
+      const canvasAspect = width / height;
+      const imgAspect = img.naturalWidth / img.naturalHeight;
+      let drawW, drawH, drawX, drawY;
+
+      if (canvasAspect > imgAspect) {
+        drawW = width;
+        drawH = width / imgAspect;
+        drawX = 0;
+        drawY = (height - drawH) / 2;
+      } else {
+        drawH = height;
+        drawW = height * imgAspect;
+        drawX = (width - drawW) / 2;
+        drawY = 0;
+      }
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.drawImage(img, drawX, drawY, drawW, drawH);
+    }
+    ctx.restore();
+  };
+
+  const renderFrameToBothCanvases = (img) => {
+    if (!img || !img.complete || img.naturalWidth === 0) return;
+    if (desktopCanvasRef.current && desktopCanvasRef.current.parentElement.offsetWidth > 0) {
+      renderFrameToCanvas(desktopCanvasRef.current, img, false);
+    }
+    if (mobileCanvasRef.current && mobileCanvasRef.current.parentElement.offsetWidth > 0) {
+      renderFrameToCanvas(mobileCanvasRef.current, img, true);
+    }
+  };
 
   // Preload frame images with instant startup & progressive background loading
   useEffect(() => {
@@ -42,9 +103,7 @@ export default function Hero({ onProgressChange }) {
     const handleInitialFrameLoad = () => {
       if (isCancelled) return;
       images[0] = initialImg;
-      if (canvasRef.current) {
-        renderFrameToCanvas(canvasRef.current, initialImg);
-      }
+      renderFrameToBothCanvases(initialImg);
       setIsLoaded(true);
       setLoadPercent(1);
     };
@@ -55,12 +114,11 @@ export default function Hero({ onProgressChange }) {
       if (!isCancelled) setIsLoaded(true);
     };
 
-    // If initial image was already cached
     if (initialImg.complete && initialImg.naturalWidth > 0) {
       handleInitialFrameLoad();
     }
 
-    // 3. Progressive batched frame preloader (chunks of 20 to avoid HTTP connection saturation)
+    // 3. Progressive batched frame preloader
     const BATCH_SIZE = 20;
     let currentBatch = 0;
 
@@ -68,7 +126,6 @@ export default function Hero({ onProgressChange }) {
       if (isCancelled) return;
       const start = currentBatch * BATCH_SIZE;
       const end = Math.min(TOTAL_FRAMES, start + BATCH_SIZE);
-
       let batchPending = end - start;
 
       for (let i = start; i < end; i++) {
@@ -89,7 +146,7 @@ export default function Hero({ onProgressChange }) {
           batchPending--;
           if (batchPending <= 0 && end < TOTAL_FRAMES) {
             currentBatch++;
-            setTimeout(loadBatch, 15); // Smooth background schedule
+            setTimeout(loadBatch, 15);
           }
         };
 
@@ -107,7 +164,6 @@ export default function Hero({ onProgressChange }) {
       }
     };
 
-    // Begin background batch loading
     loadBatch();
     imagesRef.current = images;
 
@@ -117,69 +173,12 @@ export default function Hero({ onProgressChange }) {
     };
   }, []);
 
-  // Helper to render an image onto canvas with cover aspect ratio scaling
-  const renderFrameToCanvas = (canvas, img) => {
-    if (!canvas || !img || !img.complete || img.naturalWidth === 0) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const dpr = window.devicePixelRatio || 1;
-    const width = canvas.parentElement.offsetWidth;
-    const height = canvas.parentElement.offsetHeight;
-
-    if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
-    }
-
-    ctx.save();
-    ctx.scale(dpr, dpr);
-
-    const canvasAspect = width / height;
-    const imgAspect = img.naturalWidth / img.naturalHeight;
-    let drawW, drawH, drawX, drawY;
-
-    // Use contain mode for mobile viewports (<= 768px) so the entire cinematic frame is visible without cropping
-    const isMobile = width <= 768;
-
-    if (isMobile) {
-      if (canvasAspect > imgAspect) {
-        drawH = height;
-        drawW = height * imgAspect;
-        drawX = (width - drawW) / 2;
-        drawY = 0;
-      } else {
-        drawW = width;
-        drawH = width / imgAspect;
-        drawX = 0;
-        drawY = (height - drawH) / 2;
-      }
-    } else {
-      // Desktop: preserve original cover aspect ratio behavior
-      if (canvasAspect > imgAspect) {
-        drawW = width;
-        drawH = width / imgAspect;
-        drawX = 0;
-        drawY = (height - drawH) / 2;
-      } else {
-        drawH = height;
-        drawW = height * imgAspect;
-        drawX = (width - drawW) / 2;
-        drawY = 0;
-      }
-    }
-
-    ctx.clearRect(0, 0, width, height);
-    ctx.drawImage(img, drawX, drawY, drawW, drawH);
-    ctx.restore();
-  };
-
   // Canvas resize listener
   useEffect(() => {
     const handleResize = () => {
-      if (canvasRef.current && imagesRef.current.length > 0) {
+      if (imagesRef.current.length > 0) {
         const currentImg = imagesRef.current[0];
-        renderFrameToCanvas(canvasRef.current, currentImg);
+        renderFrameToBothCanvases(currentImg);
       }
     };
     window.addEventListener('resize', handleResize);
@@ -189,14 +188,12 @@ export default function Hero({ onProgressChange }) {
   // GSAP ScrollTrigger & RAF animation loop
   useEffect(() => {
     const container = containerRef.current;
-    const canvas = canvasRef.current;
-    if (!container || !canvas) return;
+    if (!container) return;
 
     let targetFrameIndex = 0;
     let currentFrameIndex = 0;
     let animationFrameId = null;
 
-    // Helper to find nearest available loaded frame
     const getClosestLoadedFrame = (targetIdx) => {
       const images = imagesRef.current;
       if (!images || images.length === 0) return null;
@@ -216,15 +213,14 @@ export default function Hero({ onProgressChange }) {
       return images[0];
     };
 
-    // Continuous RAF loop lerping frame rendering to target frame
     const renderLoop = () => {
       const diff = targetFrameIndex - currentFrameIndex;
       if (Math.abs(diff) > 0.05) {
-        currentFrameIndex += diff * 0.3; // smooth cinematic scrubbing
+        currentFrameIndex += diff * 0.3;
         const frameIdx = Math.max(0, Math.min(TOTAL_FRAMES - 1, Math.round(currentFrameIndex)));
         const img = getClosestLoadedFrame(frameIdx);
         if (img) {
-          renderFrameToCanvas(canvas, img);
+          renderFrameToBothCanvases(img);
         }
       }
       animationFrameId = requestAnimationFrame(renderLoop);
@@ -232,12 +228,11 @@ export default function Hero({ onProgressChange }) {
 
     animationFrameId = requestAnimationFrame(renderLoop);
 
-    // GSAP context pinning the hero for 800vh scroll height (deliberate, slow scrubbing)
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
         trigger: container,
         start: 'top top',
-        end: '+=800%', // 800vh scroll distance for ultra-cinematic playback
+        end: '+=800%',
         pin: true,
         scrub: 0.1,
         anticipatePin: 1,
@@ -250,13 +245,14 @@ export default function Hero({ onProgressChange }) {
             onProgressChange(progress);
           }
 
-          // Exact scroll to frame mapping
           targetFrameIndex = Math.min(TOTAL_FRAMES - 1, Math.floor(progress * TOTAL_FRAMES));
 
-          // Subtle indicator fade out near end of video sequence (~90% progress)
-          if (scrollIndicatorRef.current) {
-            const fadeOut = progress > 0.88 ? Math.max(0, (1 - progress) / 0.12) : 1;
-            gsap.set(scrollIndicatorRef.current, { opacity: fadeOut });
+          const fadeOut = progress > 0.88 ? Math.max(0, (1 - progress) / 0.12) : 1;
+          if (scrollIndicatorRefDesktop.current) {
+            gsap.set(scrollIndicatorRefDesktop.current, { opacity: fadeOut });
+          }
+          if (scrollIndicatorRefMobile.current) {
+            gsap.set(scrollIndicatorRefMobile.current, { opacity: fadeOut });
           }
         },
       });
@@ -271,15 +267,6 @@ export default function Hero({ onProgressChange }) {
   return (
     <section id="hero" ref={containerRef} className="hero-scroll relative w-full h-screen bg-[#050505] overflow-hidden">
       <div className="hero-sticky absolute inset-0 w-full h-full overflow-hidden">
-        {/* BACKGROUND LAYER: Clean 60fps Fullscreen HTML5 Canvas (No overlay typography) */}
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 w-full h-full z-0 pointer-events-none select-none filter brightness-95 contrast-105"
-        />
-
-        {/* Minimal Vignette Shadow */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050505]/80 via-transparent to-black/50 z-10 pointer-events-none" />
-
         {/* PRELOADER OVERLAY (z-40): Shows until initial frame sequence loads */}
         {!isLoaded && (
           <div className="absolute inset-0 bg-[#050505] z-40 flex flex-col items-center justify-center gap-4">
@@ -297,42 +284,100 @@ export default function Hero({ onProgressChange }) {
           </div>
         )}
 
-        {/* TOP MINIMAL BRANDING BADGE (z-20) */}
-        <div className="absolute top-4 left-4 sm:top-8 sm:left-12 z-20 pointer-events-none">
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-black/50 border border-white/15 backdrop-blur-md">
-            <span className="w-2 h-2 rounded-full bg-[#FF4D00] animate-pulse" />
-            <span className="font-mono text-[9px] sm:text-xs text-[#E0E0E0] tracking-widest uppercase font-semibold">
-              FORGE LABS // CINEMATIC FILM
-            </span>
-          </div>
-        </div>
+        {/* DESKTOP HERO VIEWPORT (hidden on mobile md:block) */}
+        <div className="hidden md:block absolute inset-0 w-full h-full">
+          <canvas
+            ref={desktopCanvasRef}
+            className="absolute inset-0 w-full h-full z-0 pointer-events-none select-none filter brightness-95 contrast-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050505]/80 via-transparent to-black/50 z-10 pointer-events-none" />
 
-        {/* BOTTOM MINIMAL SCROLL INDICATOR OVERLAY (z-20) */}
-        <div
-          ref={scrollIndicatorRef}
-          className="absolute bottom-6 sm:bottom-8 left-0 right-0 z-20 flex justify-between items-center px-4 sm:px-8 md:px-12 pointer-events-none font-mono text-xs text-[#90909A]"
-        >
-          <div className="flex items-center gap-2 sm:gap-3 text-white">
-            <span className="tracking-widest uppercase text-[#90909A] text-[10px] sm:text-xs">
-              <span className="hidden sm:inline">SCROLL TO </span>FORGE
-            </span>
-            <div className="p-1.5 sm:p-2 rounded-full bg-black/40 border border-white/20 backdrop-blur-md animate-bounce">
-              <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FF4D00]" />
+          {/* TOP MINIMAL BRANDING BADGE */}
+          <div className="absolute top-8 left-12 z-20 pointer-events-none">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/50 border border-white/15 backdrop-blur-md">
+              <span className="w-2 h-2 rounded-full bg-[#FF4D00] animate-pulse" />
+              <span className="font-mono text-xs text-[#E0E0E0] tracking-widest uppercase font-semibold">
+                FORGE LABS // CINEMATIC FILM
+              </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-black/60 border border-white/15 backdrop-blur-md text-[10px] sm:text-xs">
-            <span>PROGRESS</span>
-            <span className="text-[#FF4D00] font-bold">{scrollProgressPercentage}%</span>
+          {/* BOTTOM MINIMAL SCROLL INDICATOR OVERLAY */}
+          <div
+            ref={scrollIndicatorRefDesktop}
+            className="absolute bottom-8 left-0 right-0 z-20 flex justify-between items-center px-12 pointer-events-none font-mono text-xs text-[#90909A]"
+          >
+            <div className="flex items-center gap-3 text-white">
+              <span className="tracking-widest uppercase text-[#90909A] text-xs">
+                SCROLL TO FORGE
+              </span>
+              <div className="p-2 rounded-full bg-black/40 border border-white/20 backdrop-blur-md animate-bounce">
+                <ChevronDown className="w-4 h-4 text-[#FF4D00]" />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 border border-white/15 backdrop-blur-md text-xs">
+              <span>PROGRESS</span>
+              <span className="text-[#FF4D00] font-bold">{scrollProgressPercentage}%</span>
+            </div>
+          </div>
+
+          {/* Bottom Scroll Progress Bar */}
+          <div className="absolute bottom-0 left-0 w-full h-1 bg-white/10 z-30">
+            <div
+              className="h-full bg-[#FF4D00] shadow-[0_0_12px_#FF4D00] transition-all duration-75"
+              style={{ width: `${scrollProgressPercentage}%` }}
+            />
           </div>
         </div>
 
-        {/* Bottom Scroll Progress Bar */}
-        <div className="absolute bottom-0 left-0 w-full h-1 bg-white/10 z-30">
-          <div
-            className="h-full bg-[#FF4D00] shadow-[0_0_12px_#FF4D00] transition-all duration-75"
-            style={{ width: `${scrollProgressPercentage}%` }}
-          />
+        {/* MOBILE HERO VIEWPORT (block on mobile, hidden on md) */}
+        <div className="md:hidden absolute inset-0 w-full h-full flex flex-col justify-center items-center px-4 z-20">
+          <div className="w-full max-w-md flex flex-col items-center gap-3">
+            {/* TOP MOBILE BRANDING BADGE */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/60 border border-white/15 backdrop-blur-md">
+              <span className="w-2 h-2 rounded-full bg-[#FF4D00] animate-pulse" />
+              <span className="font-mono text-[10px] text-[#E0E0E0] tracking-widest uppercase font-semibold">
+                FORGE LABS // CINEMATIC FILM
+              </span>
+            </div>
+
+            {/* MOBILE CINEMATIC VIDEO FRAME */}
+            <div className="w-full aspect-[16/9] relative rounded-xl overflow-hidden shadow-[0_0_40px_rgba(255,77,0,0.25)] border border-white/15 bg-black">
+              <canvas
+                ref={mobileCanvasRef}
+                className="w-full h-full block filter brightness-95 contrast-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 pointer-events-none" />
+            </div>
+
+            {/* MOBILE PROGRESS BAR & CONTROLS */}
+            <div className="w-full flex flex-col gap-2.5">
+              <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-[#FF4D00] shadow-[0_0_10px_#FF4D00] transition-all duration-75"
+                  style={{ width: `${scrollProgressPercentage}%` }}
+                />
+              </div>
+
+              <div
+                ref={scrollIndicatorRefMobile}
+                className="w-full flex justify-between items-center font-mono text-[11px] text-[#90909A]"
+              >
+                <div className="flex items-center gap-1.5 text-white">
+                  <span className="tracking-widest uppercase text-[#90909A] text-[10px]">SCROLL TO FORGE</span>
+                  <div className="p-1 rounded-full bg-black/40 border border-white/20 backdrop-blur-md animate-bounce">
+                    <ChevronDown className="w-3 h-3 text-[#FF4D00]" />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-black/60 border border-white/15 backdrop-blur-md text-[10px]">
+                  <span>PROGRESS</span>
+                  <span className="text-[#FF4D00] font-bold">{scrollProgressPercentage}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
