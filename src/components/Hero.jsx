@@ -1,188 +1,234 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, AlertCircle } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const TOTAL_FRAMES = 691;
+const DESKTOP_VIDEO_SRC = '/forge-creatine-transition.mp4.mp4';
+const MOBILE_VIDEO_SRC = '/forge-creatine-mobile.mp4';
+const MOBILE_MAX_WIDTH = 767; // Mobile viewport up to 767px; desktop is 768px and above
+
+const checkIsMobile = () => {
+  if (typeof window !== 'undefined') {
+    return window.innerWidth <= MOBILE_MAX_WIDTH;
+  }
+  return false;
+};
 
 export default function Hero({ onProgressChange }) {
   const containerRef = useRef(null);
-  const desktopCanvasRef = useRef(null);
-  const mobileCanvasRef = useRef(null);
+  const videoRef = useRef(null);
   const scrollIndicatorRefDesktop = useRef(null);
   const scrollIndicatorRefMobile = useRef(null);
-  const imagesRef = useRef([]);
 
-  const [isLoaded, setIsLoaded] = useState(false);
+  // Responsive state: strictly <= 767px is mobile, >= 768px is desktop
+  const [isMobile, setIsMobile] = useState(checkIsMobile);
+
+  // Reduced motion preference
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+    return false;
+  });
+
+  const [isLoaded, setIsLoaded] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+    return false;
+  });
+
   const [loadPercent, setLoadPercent] = useState(0);
   const [scrollProgressPercentage, setScrollProgressPercentage] = useState(0);
+  const [hasError, setHasError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  // Helper to render an image onto canvas
-  const renderFrameToCanvas = (canvas, img, isMobile) => {
-    if (!canvas || !img || !img.complete || img.naturalWidth === 0) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+  // Seeking synchronization refs
+  const durationRef = useRef(0);
+  const isSeekingRef = useRef(false);
+  const pendingTimeRef = useRef(null);
+  const targetProgressRef = useRef(0);
+  const currentProgressRef = useRef(0);
+  const seekTimeoutRef = useRef(null);
 
-    const dpr = window.devicePixelRatio || 1;
-    const width = canvas.parentElement.offsetWidth;
-    const height = canvas.parentElement.offsetHeight;
-
-    if (width === 0 || height === 0) return;
-
-    if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
-    }
-
-    ctx.save();
-    ctx.scale(dpr, dpr);
-
-    if (isMobile) {
-      // Mobile canvas parent has exact 16:9 intrinsic aspect ratio box
-      // Fill canvas 100% edge-to-edge without internal letterboxing
-      ctx.clearRect(0, 0, width, height);
-      ctx.drawImage(img, 0, 0, width, height);
-    } else {
-      // Desktop canvas parent is full screen 100vw x 100vh
-      const canvasAspect = width / height;
-      const imgAspect = img.naturalWidth / img.naturalHeight;
-      let drawW, drawH, drawX, drawY;
-
-      if (canvasAspect > imgAspect) {
-        drawW = width;
-        drawH = width / imgAspect;
-        drawX = 0;
-        drawY = (height - drawH) / 2;
-      } else {
-        drawH = height;
-        drawW = height * imgAspect;
-        drawX = (width - drawW) / 2;
-        drawY = 0;
-      }
-
-      ctx.clearRect(0, 0, width, height);
-      ctx.drawImage(img, drawX, drawY, drawW, drawH);
-    }
-    ctx.restore();
-  };
-
-  const renderFrameToBothCanvases = (img) => {
-    if (!img || !img.complete || img.naturalWidth === 0) return;
-    if (desktopCanvasRef.current && desktopCanvasRef.current.parentElement.offsetWidth > 0) {
-      renderFrameToCanvas(desktopCanvasRef.current, img, false);
-    }
-    if (mobileCanvasRef.current && mobileCanvasRef.current.parentElement.offsetWidth > 0) {
-      renderFrameToCanvas(mobileCanvasRef.current, img, true);
-    }
-  };
-
-  // Preload frame images with instant startup & progressive background loading
+  // Track viewport breakpoint for responsive video selection
   useEffect(() => {
-    let isCancelled = false;
-    let loadedCount = 0;
-    const images = new Array(TOTAL_FRAMES);
-
-    const getFrameUrl = (idx) => {
-      const pad = String(idx + 1).padStart(4, '0');
-      return `/hero-frames/frame_${pad}.jpg`;
+    const mql = window.matchMedia(`(max-width: ${MOBILE_MAX_WIDTH}px)`);
+    const handleBreakpointChange = (e) => {
+      setIsMobile(e.matches);
     };
 
-    // 1. Safety fallback timeout: dismiss preloader after 4s no matter what
-    const safetyTimer = setTimeout(() => {
-      if (!isCancelled) {
-        setIsLoaded(true);
-      }
-    }, 4000);
-
-    // 2. Render initial frame 1 immediately and dismiss loader on first frame ready
-    const initialImg = new Image();
-    initialImg.src = getFrameUrl(0);
-
-    const handleInitialFrameLoad = () => {
-      if (isCancelled) return;
-      images[0] = initialImg;
-      renderFrameToBothCanvases(initialImg);
-      setIsLoaded(true);
-      setLoadPercent(1);
+    const handleResize = () => {
+      const mobileNow = window.innerWidth <= MOBILE_MAX_WIDTH;
+      setIsMobile(mobileNow);
+      ScrollTrigger.refresh();
     };
 
-    initialImg.onload = handleInitialFrameLoad;
-    initialImg.onerror = (err) => {
-      console.warn("First hero frame failed to load, activating fallback:", err);
-      if (!isCancelled) setIsLoaded(true);
-    };
-
-    if (initialImg.complete && initialImg.naturalWidth > 0) {
-      handleInitialFrameLoad();
+    if (mql.addEventListener) {
+      mql.addEventListener('change', handleBreakpointChange);
+    } else {
+      mql.addListener(handleBreakpointChange);
     }
-
-    // 3. Progressive batched frame preloader
-    const BATCH_SIZE = 20;
-    let currentBatch = 0;
-
-    const loadBatch = () => {
-      if (isCancelled) return;
-      const start = currentBatch * BATCH_SIZE;
-      const end = Math.min(TOTAL_FRAMES, start + BATCH_SIZE);
-      let batchPending = end - start;
-
-      for (let i = start; i < end; i++) {
-        if (i === 0 && images[0]) {
-          batchPending--;
-          continue;
-        }
-
-        const img = new Image();
-        img.src = getFrameUrl(i);
-        img.onload = () => {
-          if (isCancelled) return;
-          images[i] = img;
-          loadedCount++;
-          const percent = Math.min(100, Math.round((loadedCount / TOTAL_FRAMES) * 100));
-          setLoadPercent(percent);
-
-          batchPending--;
-          if (batchPending <= 0 && end < TOTAL_FRAMES) {
-            currentBatch++;
-            setTimeout(loadBatch, 15);
-          }
-        };
-
-        img.onerror = () => {
-          if (isCancelled) return;
-          loadedCount++;
-          batchPending--;
-          if (batchPending <= 0 && end < TOTAL_FRAMES) {
-            currentBatch++;
-            setTimeout(loadBatch, 15);
-          }
-        };
-
-        images[i] = img;
-      }
-    };
-
-    loadBatch();
-    imagesRef.current = images;
+    window.addEventListener('resize', handleResize);
 
     return () => {
-      isCancelled = true;
-      clearTimeout(safetyTimer);
+      if (mql.removeEventListener) {
+        mql.removeEventListener('change', handleBreakpointChange);
+      } else {
+        mql.removeListener(handleBreakpointChange);
+      }
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
 
-  // Canvas resize listener
+  // Ensure the active video element always has the correct source and loads it
   useEffect(() => {
-    const handleResize = () => {
-      if (imagesRef.current.length > 0) {
-        const currentImg = imagesRef.current[0];
-        renderFrameToBothCanvases(currentImg);
+    const video = videoRef.current;
+    if (!video) return;
+
+    const expectedSrc = isMobile ? MOBILE_VIDEO_SRC : DESKTOP_VIDEO_SRC;
+    const currentSrc = video.getAttribute('src');
+
+    if (currentSrc !== expectedSrc) {
+      video.src = expectedSrc;
+      video.load();
+      durationRef.current = 0;
+      isSeekingRef.current = false;
+      pendingTimeRef.current = null;
+    }
+  }, [isMobile]);
+
+  // Track reduced motion preference
+  useEffect(() => {
+    const motionMql = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handleMotionChange = (e) => {
+      setPrefersReducedMotion(e.matches);
+      if (e.matches) {
+        setIsLoaded(true);
       }
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+
+    if (motionMql.addEventListener) {
+      motionMql.addEventListener('change', handleMotionChange);
+    } else {
+      motionMql.addListener(handleMotionChange);
+    }
+
+    return () => {
+      if (motionMql.removeEventListener) {
+        motionMql.removeEventListener('change', handleMotionChange);
+      } else {
+        motionMql.removeListener(handleMotionChange);
+      }
+    };
+  }, []);
+
+  // Robust video seeking helper to prevent seek queue saturation and ensure smooth scrubbing
+  const seekTo = useCallback((targetTime) => {
+    const video = videoRef.current;
+    if (!video || !durationRef.current || video.readyState < 1) {
+      pendingTimeRef.current = targetTime;
+      return;
+    }
+
+    if (isSeekingRef.current) {
+      pendingTimeRef.current = targetTime;
+      return;
+    }
+
+    isSeekingRef.current = true;
+    try {
+      video.currentTime = targetTime;
+    } catch {
+      isSeekingRef.current = false;
+    }
+
+    // Safety timeout: clear seeking lock if browser misses seeked event
+    clearTimeout(seekTimeoutRef.current);
+    seekTimeoutRef.current = setTimeout(() => {
+      if (isSeekingRef.current) {
+        isSeekingRef.current = false;
+        if (pendingTimeRef.current !== null) {
+          const next = pendingTimeRef.current;
+          pendingTimeRef.current = null;
+          const v = videoRef.current;
+          if (v && durationRef.current && v.readyState >= 1) {
+            isSeekingRef.current = true;
+            try {
+              v.currentTime = next;
+            } catch {
+              isSeekingRef.current = false;
+            }
+          }
+        }
+      }
+    }, 200);
+  }, []);
+
+  const handleSeeked = useCallback(() => {
+    isSeekingRef.current = false;
+    clearTimeout(seekTimeoutRef.current);
+    if (pendingTimeRef.current !== null) {
+      const next = pendingTimeRef.current;
+      pendingTimeRef.current = null;
+      seekTo(next);
+    }
+  }, [seekTo]);
+
+  // Video metadata and loading handlers
+  const handleLoadedMetadata = useCallback((e) => {
+    const video = e.currentTarget;
+    if (video.duration && !isNaN(video.duration) && video.duration > 0) {
+      durationRef.current = video.duration;
+      // Paint first frame immediately on mobile/desktop
+      if (video.currentTime === 0) {
+        video.currentTime = 0.001;
+      }
+      // If returning to a scrolled position after source switch, seek immediately
+      if (currentProgressRef.current > 0) {
+        const targetTime = Math.min(
+          video.duration - 0.05,
+          Math.max(0, currentProgressRef.current * video.duration)
+        );
+        seekTo(targetTime);
+      }
+    }
+  }, [seekTo]);
+
+  const handleCanPlay = useCallback(() => {
+    setIsLoaded(true);
+    setLoadPercent(100);
+  }, []);
+
+  const handleProgress = useCallback((e) => {
+    const video = e.currentTarget;
+    if (video.buffered && video.buffered.length > 0 && video.duration > 0) {
+      const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+      const pct = Math.min(100, Math.round((bufferedEnd / video.duration) * 100));
+      setLoadPercent(pct);
+    }
+  }, []);
+
+  const handleVideoError = useCallback((e) => {
+    const failedSrc = isMobile ? MOBILE_VIDEO_SRC : DESKTOP_VIDEO_SRC;
+    console.error(`Hero video failed to load (${failedSrc}):`, e);
+    setHasError(true);
+    setErrorMessage(
+      isMobile
+        ? 'Mobile video failed to load: public/forge-creatine-mobile.mp4'
+        : 'Desktop video failed to load: public/forge-creatine-transition.mp4.mp4'
+    );
+    setIsLoaded(true); // Don't trap user on preloader
+  }, [isMobile]);
+
+  // Safety fallback timeout: dismiss preloader after 4s no matter what
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoaded(true);
+    }, 4000);
+    return () => clearTimeout(timer);
   }, []);
 
   // GSAP ScrollTrigger & RAF animation loop
@@ -190,54 +236,47 @@ export default function Hero({ onProgressChange }) {
     const container = containerRef.current;
     if (!container) return;
 
-    let targetFrameIndex = 0;
-    let currentFrameIndex = 0;
+    if (prefersReducedMotion) {
+      if (onProgressChange) onProgressChange(1);
+      return;
+    }
+
     let animationFrameId = null;
 
-    const getClosestLoadedFrame = (targetIdx) => {
-      const images = imagesRef.current;
-      if (!images || images.length === 0) return null;
-      if (images[targetIdx] && images[targetIdx].complete && images[targetIdx].naturalWidth > 0) {
-        return images[targetIdx];
-      }
-      for (let offset = 1; offset < TOTAL_FRAMES; offset++) {
-        const prev = targetIdx - offset;
-        if (prev >= 0 && images[prev] && images[prev].complete && images[prev].naturalWidth > 0) {
-          return images[prev];
-        }
-        const next = targetIdx + offset;
-        if (next < TOTAL_FRAMES && images[next] && images[next].complete && images[next].naturalWidth > 0) {
-          return images[next];
-        }
-      }
-      return images[0];
-    };
-
+    // RAF loop interpolates progress for ultra-smooth buttery scrubbing
     const renderLoop = () => {
-      const diff = targetFrameIndex - currentFrameIndex;
-      if (Math.abs(diff) > 0.05) {
-        currentFrameIndex += diff * 0.3;
-        const frameIdx = Math.max(0, Math.min(TOTAL_FRAMES - 1, Math.round(currentFrameIndex)));
-        const img = getClosestLoadedFrame(frameIdx);
-        if (img) {
-          renderFrameToBothCanvases(img);
+      const diff = targetProgressRef.current - currentProgressRef.current;
+      if (Math.abs(diff) > 0.0003) {
+        currentProgressRef.current += diff * 0.35;
+        const dur = durationRef.current;
+        if (dur > 0) {
+          const targetTime = Math.min(dur - 0.05, Math.max(0, currentProgressRef.current * dur));
+          seekTo(targetTime);
         }
+      } else if (pendingTimeRef.current === null && durationRef.current > 0) {
+        currentProgressRef.current = targetProgressRef.current;
+        const dur = durationRef.current;
+        const targetTime = Math.min(dur - 0.05, Math.max(0, currentProgressRef.current * dur));
+        seekTo(targetTime);
       }
       animationFrameId = requestAnimationFrame(renderLoop);
     };
 
     animationFrameId = requestAnimationFrame(renderLoop);
 
+    // GSAP ScrollTrigger pinning hero for 800vh scroll height (deliberate, slow scrubbing)
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
         trigger: container,
         start: 'top top',
-        end: '+=800%',
+        end: '+=800%', // 800vh scroll distance for ultra-cinematic playback
         pin: true,
         scrub: 0.1,
         anticipatePin: 1,
         onUpdate: (self) => {
           const progress = self.progress;
+          targetProgressRef.current = progress;
+
           const pct = Math.round(progress * 100);
           setScrollProgressPercentage(pct);
 
@@ -245,8 +284,7 @@ export default function Hero({ onProgressChange }) {
             onProgressChange(progress);
           }
 
-          targetFrameIndex = Math.min(TOTAL_FRAMES - 1, Math.floor(progress * TOTAL_FRAMES));
-
+          // Subtle indicator fade out near end of video sequence (~88% progress)
           const fadeOut = progress > 0.88 ? Math.max(0, (1 - progress) / 0.12) : 1;
           if (scrollIndicatorRefDesktop.current) {
             gsap.set(scrollIndicatorRefDesktop.current, { opacity: fadeOut });
@@ -260,15 +298,22 @@ export default function Hero({ onProgressChange }) {
 
     return () => {
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      clearTimeout(seekTimeoutRef.current);
       ctx.revert();
     };
-  }, [onProgressChange]);
+  }, [onProgressChange, prefersReducedMotion, seekTo]);
 
   return (
-    <section id="hero" ref={containerRef} className="hero-scroll relative w-full h-screen bg-[#050505] overflow-hidden">
+    <section
+      id="hero"
+      ref={containerRef}
+      className={`hero-scroll relative w-full ${
+        prefersReducedMotion ? 'min-h-screen' : 'h-screen'
+      } bg-[#050505] overflow-hidden`}
+    >
       <div className="hero-sticky absolute inset-0 w-full h-full overflow-hidden">
-        {/* PRELOADER OVERLAY (z-40): Shows until initial frame sequence loads */}
-        {!isLoaded && (
+        {/* PRELOADER OVERLAY (z-40): Shows until video metadata and initial frame load */}
+        {!isLoaded && !prefersReducedMotion && (
           <div className="absolute inset-0 bg-[#050505] z-40 flex flex-col items-center justify-center gap-4">
             <div className="w-14 h-14 border-2 border-[#FF4D00] border-t-transparent rounded-full animate-spin" />
             <div className="flex flex-col items-center gap-1 font-mono text-xs text-[#90909A]">
@@ -284,101 +329,146 @@ export default function Hero({ onProgressChange }) {
           </div>
         )}
 
-        {/* DESKTOP HERO VIEWPORT (hidden on mobile md:block) */}
-        <div className="hidden md:block absolute inset-0 w-full h-full">
-          <canvas
-            ref={desktopCanvasRef}
-            className="absolute inset-0 w-full h-full z-0 pointer-events-none select-none filter brightness-95 contrast-105"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050505]/80 via-transparent to-black/50 z-10 pointer-events-none" />
-
-          {/* TOP MINIMAL BRANDING BADGE */}
-          <div className="absolute top-8 left-12 z-20 pointer-events-none">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/50 border border-white/15 backdrop-blur-md">
-              <span className="w-2 h-2 rounded-full bg-[#FF4D00] animate-pulse" />
-              <span className="font-mono text-xs text-[#E0E0E0] tracking-widest uppercase font-semibold">
-                FORGE LABS // CINEMATIC FILM
-              </span>
+        {/* ERROR FALLBACK OVERLAY */}
+        {hasError && (
+          <div className="absolute inset-0 bg-[#050505] z-30 flex flex-col items-center justify-center text-center px-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/60 border border-[#FF4D00]/40 text-[#FF4D00] text-xs font-mono mb-4">
+              <AlertCircle className="w-4 h-4" />
+              <span>{isMobile ? 'MOBILE VIDEO ERROR' : 'DESKTOP VIDEO ERROR'}</span>
             </div>
+            <h1 className="font-heading font-black text-2xl sm:text-4xl tracking-tight text-white mb-2">
+              FORGE LABS
+            </h1>
+            <p className="font-mono text-xs sm:text-sm text-[#FF4D00] max-w-md">
+              {errorMessage}
+            </p>
           </div>
+        )}
 
-          {/* BOTTOM MINIMAL SCROLL INDICATOR OVERLAY */}
-          <div
-            ref={scrollIndicatorRefDesktop}
-            className="absolute bottom-8 left-0 right-0 z-20 flex justify-between items-center px-12 pointer-events-none font-mono text-xs text-[#90909A]"
-          >
-            <div className="flex items-center gap-3 text-white">
-              <span className="tracking-widest uppercase text-[#90909A] text-xs">
-                SCROLL TO FORGE
-              </span>
-              <div className="p-2 rounded-full bg-black/40 border border-white/20 backdrop-blur-md animate-bounce">
-                <ChevronDown className="w-4 h-4 text-[#FF4D00]" />
+        {/* 1. MOBILE HERO VIEWPORT (Rendered on mobile <= 767px, hidden on md) */}
+        {isMobile && !hasError && (
+          <div className="md:hidden absolute inset-0 w-full h-full flex flex-col justify-center items-center px-4 z-20">
+            <div className="w-full max-w-sm flex flex-col items-center gap-2.5 sm:gap-3">
+              {/* TOP MOBILE BRANDING BADGE */}
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/60 border border-white/15 backdrop-blur-md">
+                <span className="w-2 h-2 rounded-full bg-[#FF4D00] animate-pulse" />
+                <span className="font-mono text-[10px] text-[#E0E0E0] tracking-widest uppercase font-semibold">
+                  FORGE LABS // CINEMATIC FILM
+                </span>
               </div>
-            </div>
 
-            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 border border-white/15 backdrop-blur-md text-xs">
-              <span>PROGRESS</span>
-              <span className="text-[#FF4D00] font-bold">{scrollProgressPercentage}%</span>
-            </div>
-          </div>
-
-          {/* Bottom Scroll Progress Bar */}
-          <div className="absolute bottom-0 left-0 w-full h-1 bg-white/10 z-30">
-            <div
-              className="h-full bg-[#FF4D00] shadow-[0_0_12px_#FF4D00] transition-all duration-75"
-              style={{ width: `${scrollProgressPercentage}%` }}
-            />
-          </div>
-        </div>
-
-        {/* MOBILE HERO VIEWPORT (block on mobile, hidden on md) */}
-        <div className="md:hidden absolute inset-0 w-full h-full flex flex-col justify-center items-center px-4 z-20">
-          <div className="w-full max-w-md flex flex-col items-center gap-3">
-            {/* TOP MOBILE BRANDING BADGE */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/60 border border-white/15 backdrop-blur-md">
-              <span className="w-2 h-2 rounded-full bg-[#FF4D00] animate-pulse" />
-              <span className="font-mono text-[10px] text-[#E0E0E0] tracking-widest uppercase font-semibold">
-                FORGE LABS // CINEMATIC FILM
-              </span>
-            </div>
-
-            {/* MOBILE CINEMATIC VIDEO FRAME */}
-            <div className="w-full aspect-[16/9] relative rounded-xl overflow-hidden shadow-[0_0_40px_rgba(255,77,0,0.25)] border border-white/15 bg-black">
-              <canvas
-                ref={mobileCanvasRef}
-                className="w-full h-full block filter brightness-95 contrast-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 pointer-events-none" />
-            </div>
-
-            {/* MOBILE PROGRESS BAR & CONTROLS */}
-            <div className="w-full flex flex-col gap-2.5">
-              <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-[#FF4D00] shadow-[0_0_10px_#FF4D00] transition-all duration-75"
-                  style={{ width: `${scrollProgressPercentage}%` }}
+              {/* MOBILE CINEMATIC VIDEO FRAME (Natively 9:16 Portrait) */}
+              <div className="h-[62vh] max-h-[520px] aspect-[9/16] relative rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(255,77,0,0.25)] border border-white/15 bg-black flex items-center justify-center">
+                <video
+                  ref={videoRef}
+                  key="mobile-portrait-video"
+                  src={MOBILE_VIDEO_SRC}
+                  playsInline
+                  muted
+                  autoPlay={false}
+                  preload="auto"
+                  onLoadedMetadata={handleLoadedMetadata}
+                  onLoadedData={handleCanPlay}
+                  onCanPlay={handleCanPlay}
+                  onProgress={handleProgress}
+                  onSeeked={handleSeeked}
+                  onError={handleVideoError}
+                  className="w-full h-full object-contain filter brightness-95 contrast-105"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 pointer-events-none" />
               </div>
 
-              <div
-                ref={scrollIndicatorRefMobile}
-                className="w-full flex justify-between items-center font-mono text-[11px] text-[#90909A]"
-              >
-                <div className="flex items-center gap-1.5 text-white">
-                  <span className="tracking-widest uppercase text-[#90909A] text-[10px]">SCROLL TO FORGE</span>
-                  <div className="p-1 rounded-full bg-black/40 border border-white/20 backdrop-blur-md animate-bounce">
-                    <ChevronDown className="w-3 h-3 text-[#FF4D00]" />
+              {/* MOBILE PROGRESS BAR & CONTROLS */}
+              <div className="w-full max-w-[calc(62vh*9/16)] flex flex-col gap-2">
+                <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-[#FF4D00] shadow-[0_0_10px_#FF4D00] transition-all duration-75"
+                    style={{ width: `${scrollProgressPercentage}%` }}
+                  />
+                </div>
+
+                <div
+                  ref={scrollIndicatorRefMobile}
+                  className="w-full flex justify-between items-center font-mono text-[11px] text-[#90909A]"
+                >
+                  <div className="flex items-center gap-1.5 text-white">
+                    <span className="tracking-widest uppercase text-[#90909A] text-[10px]">SCROLL TO FORGE</span>
+                    <div className="p-1 rounded-full bg-black/40 border border-white/20 backdrop-blur-md animate-bounce">
+                      <ChevronDown className="w-3 h-3 text-[#FF4D00]" />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-black/60 border border-white/15 backdrop-blur-md text-[10px]">
+                    <span>PROGRESS</span>
+                    <span className="text-[#FF4D00] font-bold">{scrollProgressPercentage}%</span>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-black/60 border border-white/15 backdrop-blur-md text-[10px]">
-                  <span>PROGRESS</span>
-                  <span className="text-[#FF4D00] font-bold">{scrollProgressPercentage}%</span>
-                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* 2. DESKTOP HERO VIEWPORT (Rendered on desktop >= 768px, hidden on mobile) */}
+        {!isMobile && !hasError && (
+          <div className="hidden md:block absolute inset-0 w-full h-full">
+            <video
+              ref={videoRef}
+              key="desktop-cinematic-video"
+              src={DESKTOP_VIDEO_SRC}
+              playsInline
+              muted
+              autoPlay={false}
+              preload="auto"
+              onLoadedMetadata={handleLoadedMetadata}
+              onLoadedData={handleCanPlay}
+              onCanPlay={handleCanPlay}
+              onProgress={handleProgress}
+              onSeeked={handleSeeked}
+              onError={handleVideoError}
+              className="absolute inset-0 w-full h-full object-cover filter brightness-95 contrast-105"
+            />
+            {/* Minimal Vignette Shadow */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#050505]/80 via-transparent to-black/50 z-10 pointer-events-none" />
+
+            {/* TOP MINIMAL BRANDING BADGE (z-20) */}
+            <div className="absolute top-8 left-12 z-20 pointer-events-none">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/50 border border-white/15 backdrop-blur-md">
+                <span className="w-2 h-2 rounded-full bg-[#FF4D00] animate-pulse" />
+                <span className="font-mono text-xs text-[#E0E0E0] tracking-widest uppercase font-semibold">
+                  FORGE LABS // CINEMATIC FILM
+                </span>
+              </div>
+            </div>
+
+            {/* BOTTOM MINIMAL SCROLL INDICATOR OVERLAY (z-20) */}
+            <div
+              ref={scrollIndicatorRefDesktop}
+              className="absolute bottom-8 left-0 right-0 z-20 flex justify-between items-center px-12 pointer-events-none font-mono text-xs text-[#90909A]"
+            >
+              <div className="flex items-center gap-3 text-white">
+                <span className="tracking-widest uppercase text-[#90909A] text-xs">
+                  SCROLL TO FORGE
+                </span>
+                <div className="p-2 rounded-full bg-black/40 border border-white/20 backdrop-blur-md animate-bounce">
+                  <ChevronDown className="w-4 h-4 text-[#FF4D00]" />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 border border-white/15 backdrop-blur-md text-xs">
+                <span>PROGRESS</span>
+                <span className="text-[#FF4D00] font-bold">{scrollProgressPercentage}%</span>
+              </div>
+            </div>
+
+            {/* Bottom Scroll Progress Bar (z-30) */}
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-white/10 z-30">
+              <div
+                className="h-full bg-[#FF4D00] shadow-[0_0_12px_#FF4D00] transition-all duration-75"
+                style={{ width: `${scrollProgressPercentage}%` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
