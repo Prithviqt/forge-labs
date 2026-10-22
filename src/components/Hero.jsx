@@ -307,11 +307,11 @@ export default function Hero({ onProgressChange }) {
     <section
       id="hero"
       ref={containerRef}
-      className={`hero-scroll relative w-full ${
-        prefersReducedMotion ? 'min-h-screen' : 'h-screen'
+      className={`hero-scroll relative w-full w-[100vw] ${
+        prefersReducedMotion ? 'min-h-[100vh] min-h-[100dvh]' : 'h-[100vh] h-[100dvh]'
       } bg-[#050505] overflow-hidden`}
     >
-      <div className="hero-sticky absolute inset-0 w-full h-full overflow-hidden">
+      <div className="hero-sticky absolute inset-0 w-full w-[100vw] h-[100vh] h-[100dvh] overflow-hidden">
         {/* PRELOADER OVERLAY (z-40): Shows until video metadata and initial frame load */}
         {!isLoaded && !prefersReducedMotion && (
           <div className="absolute inset-0 bg-[#050505] z-40 flex flex-col items-center justify-center gap-4">
@@ -347,63 +347,66 @@ export default function Hero({ onProgressChange }) {
 
         {/* 1. MOBILE HERO VIEWPORT (Rendered on mobile <= 767px, hidden on md) */}
         {isMobile && !hasError && (
-          <div className="md:hidden absolute inset-0 w-full h-full flex flex-col justify-center items-center px-4 z-20">
-            <div className="w-full max-w-sm flex flex-col items-center gap-2.5 sm:gap-3">
-              {/* TOP MOBILE BRANDING BADGE */}
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/60 border border-white/15 backdrop-blur-md">
+          <div className="md:hidden absolute inset-0 w-full w-[100vw] h-full h-[100dvh] overflow-hidden">
+            {/* FULLSCREEN EDGE-TO-EDGE 9:16 MOBILE VIDEO */}
+            <video
+              ref={videoRef}
+              key="mobile-portrait-video"
+              src={MOBILE_VIDEO_SRC}
+              playsInline
+              muted
+              autoPlay={false}
+              preload="auto"
+              onLoadedMetadata={handleLoadedMetadata}
+              onLoadedData={handleCanPlay}
+              onCanPlay={handleCanPlay}
+              onProgress={handleProgress}
+              onSeeked={handleSeeked}
+              onError={handleVideoError}
+              className="hero-video-fullscreen absolute inset-0 w-full h-full object-cover object-center filter brightness-95 contrast-105"
+            />
+
+            {/* Subtle Vignette Gradient overlay for cinematic contrast & overlay legibility */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#050505]/85 via-transparent to-black/50 z-10 pointer-events-none" />
+
+            {/* TOP MOBILE BRANDING BADGE (z-20) */}
+            <div
+              className="absolute left-4 z-20 pointer-events-none"
+              style={{ top: 'max(1rem, env(safe-area-inset-top, 1rem))' }}
+            >
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 border border-white/15 backdrop-blur-md shadow-lg">
                 <span className="w-2 h-2 rounded-full bg-[#FF4D00] animate-pulse" />
-                <span className="font-mono text-[10px] text-[#E0E0E0] tracking-widest uppercase font-semibold">
+                <span className="font-mono text-[10px] sm:text-xs text-[#E0E0E0] tracking-widest uppercase font-semibold">
                   FORGE LABS // CINEMATIC FILM
                 </span>
               </div>
+            </div>
 
-              {/* MOBILE CINEMATIC VIDEO FRAME (Natively 9:16 Portrait) */}
-              <div className="h-[62vh] max-h-[520px] aspect-[9/16] relative rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(255,77,0,0.25)] border border-white/15 bg-black flex items-center justify-center">
-                <video
-                  ref={videoRef}
-                  key="mobile-portrait-video"
-                  src={MOBILE_VIDEO_SRC}
-                  playsInline
-                  muted
-                  autoPlay={false}
-                  preload="auto"
-                  onLoadedMetadata={handleLoadedMetadata}
-                  onLoadedData={handleCanPlay}
-                  onCanPlay={handleCanPlay}
-                  onProgress={handleProgress}
-                  onSeeked={handleSeeked}
-                  onError={handleVideoError}
-                  className="w-full h-full object-contain filter brightness-95 contrast-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 pointer-events-none" />
-              </div>
-
-              {/* MOBILE PROGRESS BAR & CONTROLS */}
-              <div className="w-full max-w-[calc(62vh*9/16)] flex flex-col gap-2">
-                <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-[#FF4D00] shadow-[0_0_10px_#FF4D00] transition-all duration-75"
-                    style={{ width: `${scrollProgressPercentage}%` }}
-                  />
-                </div>
-
-                <div
-                  ref={scrollIndicatorRefMobile}
-                  className="w-full flex justify-between items-center font-mono text-[11px] text-[#90909A]"
-                >
-                  <div className="flex items-center gap-1.5 text-white">
-                    <span className="tracking-widest uppercase text-[#90909A] text-[10px]">SCROLL TO FORGE</span>
-                    <div className="p-1 rounded-full bg-black/40 border border-white/20 backdrop-blur-md animate-bounce">
-                      <ChevronDown className="w-3 h-3 text-[#FF4D00]" />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-black/60 border border-white/15 backdrop-blur-md text-[10px]">
-                    <span>PROGRESS</span>
-                    <span className="text-[#FF4D00] font-bold">{scrollProgressPercentage}%</span>
-                  </div>
+            {/* BOTTOM MOBILE SCROLL INDICATOR & PROGRESS OVERLAY (z-20) */}
+            <div
+              ref={scrollIndicatorRefMobile}
+              className="absolute left-4 right-4 z-20 flex justify-between items-center pointer-events-none font-mono text-[11px] text-[#90909A]"
+              style={{ bottom: 'max(1.25rem, env(safe-area-inset-bottom, 1.25rem))' }}
+            >
+              <div className="flex items-center gap-1.5 text-white">
+                <span className="tracking-widest uppercase text-[#90909A] text-[10px]">SCROLL TO FORGE</span>
+                <div className="p-1 rounded-full bg-black/50 border border-white/20 backdrop-blur-md animate-bounce">
+                  <ChevronDown className="w-3.5 h-3.5 text-[#FF4D00]" />
                 </div>
               </div>
+
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/60 border border-white/15 backdrop-blur-md text-[10px]">
+                <span>PROGRESS</span>
+                <span className="text-[#FF4D00] font-bold">{scrollProgressPercentage}%</span>
+              </div>
+            </div>
+
+            {/* Bottom Edge Scroll Progress Bar (z-30) */}
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-white/10 z-30">
+              <div
+                className="h-full bg-[#FF4D00] shadow-[0_0_12px_#FF4D00] transition-all duration-75"
+                style={{ width: `${scrollProgressPercentage}%` }}
+              />
             </div>
           </div>
         )}
