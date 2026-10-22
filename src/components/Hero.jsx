@@ -217,8 +217,8 @@ export default function Hero({ onProgressChange }) {
     setHasError(true);
     setErrorMessage(
       isMobile
-        ? 'Mobile video failed to load: public/forge-creatine-mobile.mp4'
-        : 'Desktop video failed to load: public/forge-creatine-transition.mp4.mp4'
+        ? `Mobile video failed to load: ${MOBILE_VIDEO_SRC}`
+        : `Desktop video failed to load: ${DESKTOP_VIDEO_SRC}`
     );
     setIsLoaded(true); // Don't trap user on preloader
   }, [isMobile]);
