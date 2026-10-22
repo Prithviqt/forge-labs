@@ -5,8 +5,8 @@ import { ChevronDown, AlertCircle } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const DESKTOP_VIDEO_SRC = '/forge-creatine-transition.mp4.mp4';
-const MOBILE_VIDEO_SRC = '/forge-creatine-mobile.mp4';
+const DESKTOP_VIDEO_SRC = '/forge-creatine-desktop-optimized.mp4';
+const MOBILE_VIDEO_SRC = '/forge-creatine-mobile-optimized.mp4';
 const MOBILE_MAX_WIDTH = 767; // Mobile viewport up to 767px; desktop is 768px and above
 
 const checkIsMobile = () => {
@@ -21,6 +21,9 @@ export default function Hero({ onProgressChange }) {
   const videoRef = useRef(null);
   const scrollIndicatorRefDesktop = useRef(null);
   const scrollIndicatorRefMobile = useRef(null);
+  const progressBarRef = useRef(null);
+  const progressTextDesktopRef = useRef(null);
+  const progressTextMobileRef = useRef(null);
 
   // Responsive state: strictly <= 767px is mobile, >= 768px is desktop
   const [isMobile, setIsMobile] = useState(checkIsMobile);
@@ -41,7 +44,6 @@ export default function Hero({ onProgressChange }) {
   });
 
   const [loadPercent, setLoadPercent] = useState(0);
-  const [scrollProgressPercentage, setScrollProgressPercentage] = useState(0);
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -125,11 +127,18 @@ export default function Hero({ onProgressChange }) {
     };
   }, []);
 
+  const seekToRef = useRef(null);
+
   // Robust video seeking helper to prevent seek queue saturation and ensure smooth scrubbing
   const seekTo = useCallback((targetTime) => {
     const video = videoRef.current;
     if (!video || !durationRef.current || video.readyState < 1) {
       pendingTimeRef.current = targetTime;
+      return;
+    }
+
+    // Skip if targetTime is within 30ms of current position (< 1 frame at 30fps)
+    if (Math.abs(video.currentTime - targetTime) < 0.03) {
       return;
     }
 
@@ -140,7 +149,11 @@ export default function Hero({ onProgressChange }) {
 
     isSeekingRef.current = true;
     try {
-      video.currentTime = targetTime;
+      if (typeof video.fastSeek === 'function') {
+        video.fastSeek(targetTime);
+      } else {
+        video.currentTime = targetTime;
+      }
     } catch {
       isSeekingRef.current = false;
     }
@@ -153,19 +166,17 @@ export default function Hero({ onProgressChange }) {
         if (pendingTimeRef.current !== null) {
           const next = pendingTimeRef.current;
           pendingTimeRef.current = null;
-          const v = videoRef.current;
-          if (v && durationRef.current && v.readyState >= 1) {
-            isSeekingRef.current = true;
-            try {
-              v.currentTime = next;
-            } catch {
-              isSeekingRef.current = false;
-            }
+          if (seekToRef.current) {
+            seekToRef.current(next);
           }
         }
       }
-    }, 200);
+    }, 150);
   }, []);
+
+  useEffect(() => {
+    seekToRef.current = seekTo;
+  }, [seekTo]);
 
   const handleSeeked = useCallback(() => {
     isSeekingRef.current = false;
@@ -173,9 +184,11 @@ export default function Hero({ onProgressChange }) {
     if (pendingTimeRef.current !== null) {
       const next = pendingTimeRef.current;
       pendingTimeRef.current = null;
-      seekTo(next);
+      if (seekToRef.current) {
+        seekToRef.current(next);
+      }
     }
-  }, [seekTo]);
+  }, []);
 
   // Video metadata and loading handlers
   const handleLoadedMetadata = useCallback((e) => {
@@ -242,22 +255,31 @@ export default function Hero({ onProgressChange }) {
     }
 
     let animationFrameId = null;
+    let lastSeekedTarget = -1;
 
     // RAF loop interpolates progress for ultra-smooth buttery scrubbing
     const renderLoop = () => {
       const diff = targetProgressRef.current - currentProgressRef.current;
-      if (Math.abs(diff) > 0.0003) {
+      const dur = durationRef.current;
+
+      if (Math.abs(diff) > 0.0004) {
         currentProgressRef.current += diff * 0.35;
-        const dur = durationRef.current;
         if (dur > 0) {
           const targetTime = Math.min(dur - 0.05, Math.max(0, currentProgressRef.current * dur));
-          seekTo(targetTime);
+          if (Math.abs(targetTime - lastSeekedTarget) >= 0.03) {
+            lastSeekedTarget = targetTime;
+            seekTo(targetTime);
+          }
         }
-      } else if (pendingTimeRef.current === null && durationRef.current > 0) {
+      } else if (currentProgressRef.current !== targetProgressRef.current) {
         currentProgressRef.current = targetProgressRef.current;
-        const dur = durationRef.current;
-        const targetTime = Math.min(dur - 0.05, Math.max(0, currentProgressRef.current * dur));
-        seekTo(targetTime);
+        if (dur > 0) {
+          const targetTime = Math.min(dur - 0.05, Math.max(0, currentProgressRef.current * dur));
+          if (Math.abs(targetTime - lastSeekedTarget) >= 0.03) {
+            lastSeekedTarget = targetTime;
+            seekTo(targetTime);
+          }
+        }
       }
       animationFrameId = requestAnimationFrame(renderLoop);
     };
@@ -278,7 +300,15 @@ export default function Hero({ onProgressChange }) {
           targetProgressRef.current = progress;
 
           const pct = Math.round(progress * 100);
-          setScrollProgressPercentage(pct);
+          if (progressBarRef.current) {
+            progressBarRef.current.style.width = `${pct}%`;
+          }
+          if (progressTextDesktopRef.current) {
+            progressTextDesktopRef.current.textContent = `${pct}%`;
+          }
+          if (progressTextMobileRef.current) {
+            progressTextMobileRef.current.textContent = `${pct}%`;
+          }
 
           if (onProgressChange) {
             onProgressChange(progress);
@@ -287,10 +317,10 @@ export default function Hero({ onProgressChange }) {
           // Subtle indicator fade out near end of video sequence (~88% progress)
           const fadeOut = progress > 0.88 ? Math.max(0, (1 - progress) / 0.12) : 1;
           if (scrollIndicatorRefDesktop.current) {
-            gsap.set(scrollIndicatorRefDesktop.current, { opacity: fadeOut });
+            scrollIndicatorRefDesktop.current.style.opacity = fadeOut;
           }
           if (scrollIndicatorRefMobile.current) {
-            gsap.set(scrollIndicatorRefMobile.current, { opacity: fadeOut });
+            scrollIndicatorRefMobile.current.style.opacity = fadeOut;
           }
         },
       });
@@ -345,14 +375,13 @@ export default function Hero({ onProgressChange }) {
           </div>
         )}
 
-        {/* 1. MOBILE HERO VIEWPORT (Rendered on mobile <= 767px, hidden on md) */}
-        {isMobile && !hasError && (
-          <div className="md:hidden absolute inset-0 w-full w-[100vw] h-full h-[100dvh] overflow-hidden">
-            {/* FULLSCREEN EDGE-TO-EDGE 9:16 MOBILE VIDEO */}
+        {/* FULLSCREEN CINEMATIC VIDEO & OVERLAYS */}
+        {!hasError && (
+          <div className="absolute inset-0 w-full h-full overflow-hidden">
+            {/* SINGLE PERSISTENT FULLSCREEN CINEMATIC VIDEO */}
             <video
               ref={videoRef}
-              key="mobile-portrait-video"
-              src={MOBILE_VIDEO_SRC}
+              src={isMobile ? MOBILE_VIDEO_SRC : DESKTOP_VIDEO_SRC}
               playsInline
               muted
               autoPlay={false}
@@ -363,7 +392,7 @@ export default function Hero({ onProgressChange }) {
               onProgress={handleProgress}
               onSeeked={handleSeeked}
               onError={handleVideoError}
-              className="hero-video-fullscreen absolute inset-0 w-full h-full object-cover object-center filter brightness-95 contrast-105"
+              className="hero-video-fullscreen absolute inset-0 w-full h-full object-cover object-center"
             />
 
             {/* Subtle Vignette Gradient overlay for cinematic contrast & overlay legibility */}
@@ -371,7 +400,7 @@ export default function Hero({ onProgressChange }) {
 
             {/* TOP MOBILE BRANDING BADGE (z-20) */}
             <div
-              className="absolute left-4 z-20 pointer-events-none"
+              className="md:hidden absolute left-4 z-20 pointer-events-none"
               style={{ top: 'max(1rem, env(safe-area-inset-top, 1rem))' }}
             >
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 border border-white/15 backdrop-blur-md shadow-lg">
@@ -382,10 +411,20 @@ export default function Hero({ onProgressChange }) {
               </div>
             </div>
 
+            {/* TOP DESKTOP BRANDING BADGE (z-20) */}
+            <div className="hidden md:block absolute top-8 left-12 z-20 pointer-events-none">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/50 border border-white/15 backdrop-blur-md">
+                <span className="w-2 h-2 rounded-full bg-[#FF4D00] animate-pulse" />
+                <span className="font-mono text-xs text-[#E0E0E0] tracking-widest uppercase font-semibold">
+                  FORGE LABS // CINEMATIC FILM
+                </span>
+              </div>
+            </div>
+
             {/* BOTTOM MOBILE SCROLL INDICATOR & PROGRESS OVERLAY (z-20) */}
             <div
               ref={scrollIndicatorRefMobile}
-              className="absolute left-4 right-4 z-20 flex justify-between items-center pointer-events-none font-mono text-[11px] text-[#90909A]"
+              className="md:hidden absolute left-4 right-4 z-20 flex justify-between items-center pointer-events-none font-mono text-[11px] text-[#90909A]"
               style={{ bottom: 'max(1.25rem, env(safe-area-inset-bottom, 1.25rem))' }}
             >
               <div className="flex items-center gap-1.5 text-white">
@@ -397,56 +436,14 @@ export default function Hero({ onProgressChange }) {
 
               <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/60 border border-white/15 backdrop-blur-md text-[10px]">
                 <span>PROGRESS</span>
-                <span className="text-[#FF4D00] font-bold">{scrollProgressPercentage}%</span>
+                <span ref={progressTextMobileRef} className="text-[#FF4D00] font-bold">0%</span>
               </div>
             </div>
 
-            {/* Bottom Edge Scroll Progress Bar (z-30) */}
-            <div className="absolute bottom-0 left-0 w-full h-1 bg-white/10 z-30">
-              <div
-                className="h-full bg-[#FF4D00] shadow-[0_0_12px_#FF4D00] transition-all duration-75"
-                style={{ width: `${scrollProgressPercentage}%` }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* 2. DESKTOP HERO VIEWPORT (Rendered on desktop >= 768px, hidden on mobile) */}
-        {!isMobile && !hasError && (
-          <div className="hidden md:block absolute inset-0 w-full h-full">
-            <video
-              ref={videoRef}
-              key="desktop-cinematic-video"
-              src={DESKTOP_VIDEO_SRC}
-              playsInline
-              muted
-              autoPlay={false}
-              preload="auto"
-              onLoadedMetadata={handleLoadedMetadata}
-              onLoadedData={handleCanPlay}
-              onCanPlay={handleCanPlay}
-              onProgress={handleProgress}
-              onSeeked={handleSeeked}
-              onError={handleVideoError}
-              className="absolute inset-0 w-full h-full object-cover filter brightness-95 contrast-105"
-            />
-            {/* Minimal Vignette Shadow */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#050505]/80 via-transparent to-black/50 z-10 pointer-events-none" />
-
-            {/* TOP MINIMAL BRANDING BADGE (z-20) */}
-            <div className="absolute top-8 left-12 z-20 pointer-events-none">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/50 border border-white/15 backdrop-blur-md">
-                <span className="w-2 h-2 rounded-full bg-[#FF4D00] animate-pulse" />
-                <span className="font-mono text-xs text-[#E0E0E0] tracking-widest uppercase font-semibold">
-                  FORGE LABS // CINEMATIC FILM
-                </span>
-              </div>
-            </div>
-
-            {/* BOTTOM MINIMAL SCROLL INDICATOR OVERLAY (z-20) */}
+            {/* BOTTOM DESKTOP SCROLL INDICATOR & PROGRESS OVERLAY (z-20) */}
             <div
               ref={scrollIndicatorRefDesktop}
-              className="absolute bottom-8 left-0 right-0 z-20 flex justify-between items-center px-12 pointer-events-none font-mono text-xs text-[#90909A]"
+              className="hidden md:flex absolute bottom-8 left-0 right-0 z-20 justify-between items-center px-12 pointer-events-none font-mono text-xs text-[#90909A]"
             >
               <div className="flex items-center gap-3 text-white">
                 <span className="tracking-widest uppercase text-[#90909A] text-xs">
@@ -459,15 +456,16 @@ export default function Hero({ onProgressChange }) {
 
               <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 border border-white/15 backdrop-blur-md text-xs">
                 <span>PROGRESS</span>
-                <span className="text-[#FF4D00] font-bold">{scrollProgressPercentage}%</span>
+                <span ref={progressTextDesktopRef} className="text-[#FF4D00] font-bold">0%</span>
               </div>
             </div>
 
-            {/* Bottom Scroll Progress Bar (z-30) */}
+            {/* Bottom Edge Scroll Progress Bar (z-30) */}
             <div className="absolute bottom-0 left-0 w-full h-1 bg-white/10 z-30">
               <div
+                ref={progressBarRef}
                 className="h-full bg-[#FF4D00] shadow-[0_0_12px_#FF4D00] transition-all duration-75"
-                style={{ width: `${scrollProgressPercentage}%` }}
+                style={{ width: '0%' }}
               />
             </div>
           </div>
